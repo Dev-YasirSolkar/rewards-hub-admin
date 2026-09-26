@@ -66,14 +66,14 @@ export default function WithdrawalsPage() {
   };
 
   const handleMarkSuccess = async (id: string) => {
-    if (!confirm('Mark this withdrawal as SUCCESS / PAID? Confirm that you have transferred the funds to user.')) return;
+    if (!confirm('Mark this withdrawal as SUCCESS / PAID? Confirm you have sent the payment to user.')) return;
     try {
       const res = await adminFetch(`/api/admin/withdrawals/${id}/approve`, {
         method: 'POST',
         body: JSON.stringify({ status: 'success' }),
       });
       if (res.success) {
-        alert('✓ Withdrawal marked as SUCCESS / PAID!');
+        alert('Withdrawal marked as SUCCESS / PAID');
         fetchWithdrawals();
       } else {
         alert(res.error || 'Failed to update withdrawal');
@@ -83,26 +83,26 @@ export default function WithdrawalsPage() {
     }
   };
 
-  const handleApprove = async (id: string) => {
-    if (!confirm('Mark this withdrawal request as APPROVED (Processing)?')) return;
+  const handleMarkProcessing = async (id: string) => {
+    if (!confirm('Mark this withdrawal request as PROCESSING?')) return;
     try {
       const res = await adminFetch(`/api/admin/withdrawals/${id}/approve`, {
         method: 'POST',
-        body: JSON.stringify({ status: 'approved' }),
+        body: JSON.stringify({ status: 'processing' }),
       });
       if (res.success) {
-        alert('✓ Withdrawal marked as APPROVED!');
+        alert('Withdrawal status updated to PROCESSING');
         fetchWithdrawals();
       } else {
-        alert(res.error || 'Failed to approve withdrawal');
+        alert(res.error || 'Failed to update withdrawal');
       }
     } catch {
-      alert('Network error while approving');
+      alert('Network error while updating status');
     }
   };
 
   const handleReject = async (id: string) => {
-    const reason = prompt('Enter rejection reason (will be visible to user and points refunded):');
+    const reason = prompt('Enter rejection reason (points will be refunded to user):');
     if (!reason || !reason.trim()) return;
     try {
       const res = await adminFetch(`/api/admin/withdrawals/${id}/reject`, {
@@ -110,7 +110,7 @@ export default function WithdrawalsPage() {
         body: JSON.stringify({ rejectionReason: reason.trim() }),
       });
       if (res.success) {
-        alert('✓ Withdrawal rejected and points refunded to user wallet!');
+        alert('Withdrawal rejected and points refunded to user wallet');
         fetchWithdrawals();
       } else {
         alert(res.error || 'Failed to reject withdrawal');
@@ -129,7 +129,7 @@ export default function WithdrawalsPage() {
             Withdrawal Management
           </h2>
           <p style={{ margin: '2px 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>
-            Review, verify payment details, and approve user payouts.
+            Review, verify payment details, and process user payouts.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -141,7 +141,7 @@ export default function WithdrawalsPage() {
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
-            <option value="approved">Approved (Processing)</option>
+            <option value="processing">Processing</option>
             <option value="success">Success / Paid</option>
             <option value="rejected">Rejected</option>
           </select>
@@ -150,7 +150,7 @@ export default function WithdrawalsPage() {
             style={{ padding: '5px 12px', fontSize: '12px' }}
             onClick={fetchWithdrawals}
           >
-            ↻ Refresh
+            Refresh
           </button>
         </div>
       </div>
@@ -184,6 +184,7 @@ export default function WithdrawalsPage() {
               ) : (
                 withdrawals.map((w) => {
                   const isPending = w.status === 'pending';
+                  const isProcessing = w.status === 'processing' || w.status === 'approved';
                   const details = w.paymentDetails || {};
 
                   return (
@@ -244,7 +245,7 @@ export default function WithdrawalsPage() {
                                 cursor: 'pointer',
                               }}
                             >
-                              {copiedId === w.id ? '✓ Copied' : 'Copy'}
+                              {copiedId === w.id ? 'Copied' : 'Copy'}
                             </button>
                           </div>
                         )}
@@ -259,7 +260,7 @@ export default function WithdrawalsPage() {
                                   onClick={() => handleCopy(details.accountNumber!, `acc-${w.id}`)}
                                   style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: '10px', cursor: 'pointer' }}
                                 >
-                                  {copiedId === `acc-${w.id}` ? '✓' : 'Copy'}
+                                  {copiedId === `acc-${w.id}` ? 'Copied' : 'Copy'}
                                 </button>
                               </div>
                             )}
@@ -280,25 +281,26 @@ export default function WithdrawalsPage() {
                         )}
                       </td>
 
-                      {/* Status Column */}
+                      {/* Status Column (NO EMOJIS, Processing instead of Approved) */}
                       <td>
                         <span
                           className={`admin-badge ${
                             w.status === 'success' || w.status === 'paid'
                               ? 'admin-badge-success'
-                              : w.status === 'approved'
+                              : isProcessing
                               ? 'admin-badge-info'
                               : w.status === 'rejected'
                               ? 'admin-badge-danger'
                               : 'admin-badge-warning'
                           }`}
+                          style={{ whiteSpace: 'nowrap' }}
                         >
                           {w.status === 'success' || w.status === 'paid'
-                            ? '✓ Success'
-                            : w.status === 'approved'
-                            ? 'Approved'
+                            ? 'Success'
+                            : isProcessing
+                            ? 'Processing'
                             : w.status === 'rejected'
-                            ? '✕ Rejected'
+                            ? 'Rejected'
                             : 'Pending'}
                         </span>
                       </td>
@@ -308,7 +310,7 @@ export default function WithdrawalsPage() {
                         {w.createdAt ? new Date(w.createdAt).toLocaleDateString() : '—'}
                       </td>
 
-                      {/* Actions Column */}
+                      {/* Actions Column (NO EMOJIS, Clean Buttons) */}
                       <td style={{ textAlign: 'right' }}>
                         {isPending ? (
                           <div style={{ display: 'inline-flex', gap: '6px' }}>
@@ -323,12 +325,12 @@ export default function WithdrawalsPage() {
                                 fontWeight: 700,
                               }}
                             >
-                              ✓ Pay (Success)
+                              Pay (Success)
                             </button>
                             <button
-                              onClick={() => handleApprove(w.id)}
+                              onClick={() => handleMarkProcessing(w.id)}
                               className="admin-button"
-                              title="Mark as Approved / Processing"
+                              title="Mark as Processing"
                               style={{
                                 background: '#3b82f6',
                                 padding: '4px 8px',
@@ -336,7 +338,7 @@ export default function WithdrawalsPage() {
                                 fontWeight: 700,
                               }}
                             >
-                              Approve
+                              Process
                             </button>
                             <button
                               onClick={() => handleReject(w.id)}
@@ -350,7 +352,7 @@ export default function WithdrawalsPage() {
                               Reject
                             </button>
                           </div>
-                        ) : w.status === 'approved' ? (
+                        ) : isProcessing ? (
                           <div style={{ display: 'inline-flex', gap: '6px' }}>
                             <button
                               onClick={() => handleMarkSuccess(w.id)}
@@ -363,7 +365,7 @@ export default function WithdrawalsPage() {
                                 fontWeight: 700,
                               }}
                             >
-                              ✓ Mark Success
+                              Pay (Success)
                             </button>
                             <button
                               onClick={() => handleReject(w.id)}
@@ -392,4 +394,3 @@ export default function WithdrawalsPage() {
     </div>
   );
 }
-

@@ -208,7 +208,7 @@ export default function UsersPage() {
                           whiteSpace: 'nowrap',
                         }}>
                           {isSuspended && !isExpired
-                            ? (user.suspendedUntil ? '⏳ Temp Blocked' : '⛔ Perm Blocked') 
+                            ? (user.suspendedUntil ? 'Temp Blocked' : 'Perm Blocked') 
                             : 'Active'}
                         </span>
                       </td>
@@ -232,7 +232,7 @@ export default function UsersPage() {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              ✓ Unblock
+                              Unblock
                             </button>
                           ) : (
                             <button
@@ -249,7 +249,7 @@ export default function UsersPage() {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              🚫 Block
+                              Block
                             </button>
                           )}
 
@@ -289,7 +289,7 @@ export default function UsersPage() {
         }}>
           <div className="admin-card" style={{ maxWidth: '460px', width: '100%', margin: 0, border: '1px solid #da363350' }}>
             <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#f85149' }}>
-              🚫 Block / Suspend User
+              Block / Suspend User
             </h3>
             <p style={{ margin: '0 0 16px', color: '#8b949e', fontSize: '13px' }}>
               User: <strong style={{ color: '#f0f6fc' }}>{selectedUserForSuspend.firstName} {selectedUserForSuspend.lastName || ''}</strong> ({selectedUserForSuspend.telegramId || selectedUserForSuspend.id})
@@ -311,7 +311,7 @@ export default function UsersPage() {
                 <option value="7d">7 Days (1 Week)</option>
                 <option value="30d">30 Days (1 Month)</option>
                 <option value="custom">Custom Hours</option>
-                <option value="permanent">⛔ Permanent Ban</option>
+                <option value="permanent">Permanent Ban</option>
               </select>
 
               {suspendDuration === 'custom' && (

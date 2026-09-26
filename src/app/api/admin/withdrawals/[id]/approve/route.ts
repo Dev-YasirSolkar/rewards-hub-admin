@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
-    const targetStatus = body?.status === 'approved' ? 'approved' : 'success';
+    const targetStatus = (body?.status === 'processing' || body?.status === 'approved') ? 'processing' : 'success';
 
     const withdrawalRef = adminDb.collection('withdrawals').doc(id);
     
@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
       
       const data = doc.data();
-      const validStatuses = ['pending', 'approved'];
+      const validStatuses = ['pending', 'processing', 'approved'];
       if (!validStatuses.includes(data?.status)) {
         throw new Error(`Withdrawal is already ${data?.status}`);
       }
@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ success: true, status: targetStatus });
   } catch (error: any) {
-    if (error.message === 'Withdrawal not found' || error.message === 'Withdrawal is not pending') {
+    if (error.message === 'Withdrawal not found' || error.message?.startsWith('Withdrawal is already')) {
       return badRequest(error.message);
     }
     return serverError(error);

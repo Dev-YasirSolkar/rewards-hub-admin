@@ -4,6 +4,18 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
 
+function formatFirestoreData(data: Record<string, any>) {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value && typeof value === 'object' && typeof value.toDate === 'function') {
+      result[key] = value.toDate().toISOString();
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await authenticateAdmin(request);
@@ -15,26 +27,102 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const { id } = await params;
-    const userDoc = await adminDb.collection('users').doc(id).get();
-    
+    const cleanId = decodeURIComponent(id).trim();
+
+    // 1. Try finding user by Document ID
+    let userDoc = await adminDb.collection('users').doc(cleanId).get();
+
+    // 2. Fallback: try finding by telegramId as number
     if (!userDoc.exists) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      const numId = Number(cleanId);
+      if (!isNaN(numId)) {
+        const snap = await adminDb.collection('users').where('telegramId', '==', numId).limit(1).get();
+        if (!snap.empty) {
+          userDoc = snap.docs[0];
+        }
+      }
     }
 
-    const [transactions, referrals] = await Promise.all([
-      adminDb.collection('transactions').where('userId', '==', id).orderBy('createdAt', 'desc').limit(10).get(),
-      adminDb.collection('users').where('referredBy', '==', id).limit(10).get()
-    ]);
+    // 3. Fallback: try finding by telegramId as string
+    if (!userDoc.exists) {
+      const snap = await adminDb.collection('users').where('telegramId', '==', cleanId).limit(1).get();
+      if (!snap.empty) {
+        userDoc = snap.docs[0];
+      }
+    }
+
+    if (!userDoc.exists) {
+      return NextResponse.json({ success: false, error: `User with ID ${cleanId} not found` }, { status: 404 });
+    }
+
+    const rawUserData = userDoc.data()!;
+    const userId = userDoc.id;
+
+    // Safe transactions fetch with index-missing fallback
+    let transactions: any[] = [];
+    try {
+      const txSnap = await adminDb.collection('transactions')
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .limit(20)
+        .get();
+      transactions = txSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
+    } catch {
+      try {
+        const txSnap = await adminDb.collection('transactions')
+          .where('userId', '==', userId)
+          .limit(20)
+          .get();
+        transactions = txSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
+        transactions.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      } catch (err) {
+        console.warn('Failed to load transactions for user', userId, err);
+      }
+    }
+
+    // Safe referrals fetch
+    let referrals: any[] = [];
+    try {
+      const refSnap = await adminDb.collection('users').where('referredBy', '==', userId).limit(20).get();
+      referrals = refSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
+    } catch (err) {
+      console.warn('Failed to load referrals for user', userId, err);
+    }
+
+    // Safe withdrawals fetch
+    let withdrawals: any[] = [];
+    try {
+      const wdSnap = await adminDb.collection('withdrawals').where('userId', '==', userId).limit(20).get();
+      withdrawals = wdSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
+      withdrawals.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    } catch (err) {
+      console.warn('Failed to load withdrawals for user', userId, err);
+    }
+
+    const formattedUser = {
+      id: userId,
+      ...formatFirestoreData(rawUserData),
+      telegramId: rawUserData.telegramId || userId,
+      pointsBalance: rawUserData.pointsBalance ?? rawUserData.balance ?? 0,
+      balance: rawUserData.pointsBalance ?? rawUserData.balance ?? 0,
+      lifetimeEarned: rawUserData.lifetimeEarned ?? 0,
+      lifetimeWithdrawn: rawUserData.lifetimeWithdrawn ?? 0,
+      defaultPayoutMethod: rawUserData.defaultPayoutMethod || null,
+      savedUpiId: rawUserData.savedUpiId || null,
+      savedBankDetails: rawUserData.savedBankDetails || null,
+    };
 
     return NextResponse.json({
       success: true,
       data: {
-        user: { id: userDoc.id, ...userDoc.data() },
-        transactions: transactions.docs.map(d => ({ id: d.id, ...d.data() })),
-        referrals: referrals.docs.map(d => ({ id: d.id, ...d.data() }))
+        user: formattedUser,
+        transactions,
+        referrals,
+        withdrawals,
       }
     });
   } catch (error) {
+    console.error('Error fetching admin user:', error);
     return serverError(error);
   }
 }
@@ -50,11 +138,31 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const { id } = await params;
+    const cleanId = decodeURIComponent(id).trim();
     const body = await request.json();
     const { status, duration = 'permanent', customHours, reason } = body;
 
     if (!['active', 'suspended'].includes(status)) {
       return badRequest('Invalid status');
+    }
+
+    // Find actual doc reference
+    let userRef = adminDb.collection('users').doc(cleanId);
+    let userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      const numId = Number(cleanId);
+      if (!isNaN(numId)) {
+        const snap = await adminDb.collection('users').where('telegramId', '==', numId).limit(1).get();
+        if (!snap.empty) {
+          userRef = snap.docs[0].ref;
+          userDoc = snap.docs[0];
+        }
+      }
+    }
+
+    if (!userDoc.exists) {
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     let suspendedUntil: string | null = null;
@@ -73,12 +181,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       } else if (duration === 'custom' && customHours) {
         suspendedUntil = new Date(now + Number(customHours) * 3600_000).toISOString();
       } else {
-        // 'permanent'
         suspendedUntil = null;
       }
     }
 
-    const userRef = adminDb.collection('users').doc(id);
     await userRef.update({
       status,
       suspendedUntil: status === 'suspended' ? suspendedUntil : null,
@@ -91,7 +197,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       performedBy: admin.id,
       action: `update_user_status`,
       details: { 
-        userId: id, 
+        userId: userDoc.id, 
         newStatus: status, 
         duration: status === 'suspended' ? duration : undefined,
         suspendedUntil,
