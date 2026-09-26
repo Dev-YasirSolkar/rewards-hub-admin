@@ -69,20 +69,58 @@ export async function PATCH(request: Request) {
 
     if (!flagId) return badRequest('flagId is required');
 
+    let suspendedUntil: string | null = null;
+    if (body.suspendUser && body.userId) {
+      const duration = body.duration || 'permanent';
+      const reason = body.reason || 'Suspended via Fraud Monitoring alert';
+      const now = Date.now();
+
+      if (duration === '1h') {
+        suspendedUntil = new Date(now + 1 * 3600_000).toISOString();
+      } else if (duration === '24h' || duration === '1d') {
+        suspendedUntil = new Date(now + 24 * 3600_000).toISOString();
+      } else if (duration === '3d') {
+        suspendedUntil = new Date(now + 3 * 24 * 3600_000).toISOString();
+      } else if (duration === '7d' || duration === '1w') {
+        suspendedUntil = new Date(now + 7 * 24 * 3600_000).toISOString();
+      } else if (duration === '30d' || duration === '1m') {
+        suspendedUntil = new Date(now + 30 * 24 * 3600_000).toISOString();
+      } else if (duration === 'custom' && body.customHours) {
+        suspendedUntil = new Date(now + Number(body.customHours) * 3600_000).toISOString();
+      } else {
+        suspendedUntil = null;
+      }
+
+      await adminDb.collection('users').doc(body.userId).update({
+        status: 'suspended',
+        suspendedUntil,
+        suspendReason: reason,
+        suspendedAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await createAuditLog({
+        performedBy: admin.id,
+        action: 'suspend_user_via_fraud',
+        details: { userId: body.userId, flagId, duration, suspendedUntil, reason },
+      });
+    }
+
     const flagRef = adminDb.collection('fraudFlags').doc(flagId);
     await flagRef.update({
       resolved: true,
       resolvedBy: admin.id,
       resolvedAt: new Date(),
+      resolutionAction: body.suspendUser ? 'suspended_user' : 'resolved_manually',
     });
 
     await createAuditLog({
       performedBy: admin.id,
       action: 'resolve_fraud_flag',
-      details: { flagId },
+      details: { flagId, suspendUser: !!body.suspendUser },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, suspendedUntil });
   } catch (error) {
     return serverError(error);
   }

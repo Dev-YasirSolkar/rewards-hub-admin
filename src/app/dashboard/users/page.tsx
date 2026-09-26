@@ -131,7 +131,9 @@ export default function UsersPage() {
                         background: user.status === 'suspended' ? '#da363320' : '#23863620',
                         color: user.status === 'suspended' ? '#f85149' : '#3fb950',
                       }}>
-                        {user.status === 'suspended' ? 'Suspended' : 'Active'}
+                        {user.status === 'suspended' 
+                          ? (user.suspendedUntil ? '⏳ Temp Blocked' : '⛔ Perm Blocked') 
+                          : 'Active'}
                       </span>
                     </td>
                     <td style={{ fontSize: '0.85rem', color: '#8b949e' }}>

@@ -51,22 +51,55 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const { id } = await params;
     const body = await request.json();
-    const { status } = body;
+    const { status, duration = 'permanent', customHours, reason } = body;
 
     if (!['active', 'suspended'].includes(status)) {
       return badRequest('Invalid status');
     }
 
+    let suspendedUntil: string | null = null;
+    if (status === 'suspended') {
+      const now = Date.now();
+      if (duration === '1h') {
+        suspendedUntil = new Date(now + 1 * 3600_000).toISOString();
+      } else if (duration === '24h' || duration === '1d') {
+        suspendedUntil = new Date(now + 24 * 3600_000).toISOString();
+      } else if (duration === '3d') {
+        suspendedUntil = new Date(now + 3 * 24 * 3600_000).toISOString();
+      } else if (duration === '7d' || duration === '1w') {
+        suspendedUntil = new Date(now + 7 * 24 * 3600_000).toISOString();
+      } else if (duration === '30d' || duration === '1m') {
+        suspendedUntil = new Date(now + 30 * 24 * 3600_000).toISOString();
+      } else if (duration === 'custom' && customHours) {
+        suspendedUntil = new Date(now + Number(customHours) * 3600_000).toISOString();
+      } else {
+        // 'permanent'
+        suspendedUntil = null;
+      }
+    }
+
     const userRef = adminDb.collection('users').doc(id);
-    await userRef.update({ status, updatedAt: new Date() });
+    await userRef.update({
+      status,
+      suspendedUntil: status === 'suspended' ? suspendedUntil : null,
+      suspendReason: status === 'suspended' ? (reason?.trim() || null) : null,
+      suspendedAt: status === 'suspended' ? new Date() : null,
+      updatedAt: new Date(),
+    });
 
     await createAuditLog({
       performedBy: admin.id,
       action: `update_user_status`,
-      details: { userId: id, newStatus: status }
+      details: { 
+        userId: id, 
+        newStatus: status, 
+        duration: status === 'suspended' ? duration : undefined,
+        suspendedUntil,
+        reason,
+      }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, suspendedUntil, status });
   } catch (error) {
     return serverError(error);
   }
