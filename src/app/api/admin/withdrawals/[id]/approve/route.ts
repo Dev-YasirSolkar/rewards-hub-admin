@@ -15,6 +15,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const { id } = await params;
+    const body = await request.json().catch(() => ({}));
+    const targetStatus = body?.status === 'approved' ? 'approved' : 'success';
+
     const withdrawalRef = adminDb.collection('withdrawals').doc(id);
     
     await adminDb.runTransaction(async (transaction) => {
@@ -24,12 +27,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
       
       const data = doc.data();
-      if (data?.status !== 'pending') {
-        throw new Error('Withdrawal is not pending');
+      const validStatuses = ['pending', 'approved'];
+      if (!validStatuses.includes(data?.status)) {
+        throw new Error(`Withdrawal is already ${data?.status}`);
       }
 
       transaction.update(withdrawalRef, {
-        status: 'approved',
+        status: targetStatus,
         processedAt: new Date(),
         processedBy: admin.id
       });
@@ -38,10 +42,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     await createAuditLog({
       performedBy: admin.id,
       action: 'approve_withdrawal',
-      details: { withdrawalId: id }
+      details: { withdrawalId: id, status: targetStatus }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, status: targetStatus });
   } catch (error: any) {
     if (error.message === 'Withdrawal not found' || error.message === 'Withdrawal is not pending') {
       return badRequest(error.message);

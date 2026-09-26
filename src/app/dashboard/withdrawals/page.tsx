@@ -65,12 +65,33 @@ export default function WithdrawalsPage() {
     }
   };
 
-  const handleApprove = async (id: string) => {
-    if (!confirm('Are you sure you want to approve this withdrawal request? Mark as approved after sending payment.')) return;
+  const handleMarkSuccess = async (id: string) => {
+    if (!confirm('Mark this withdrawal as SUCCESS / PAID? Confirm that you have transferred the funds to user.')) return;
     try {
-      const res = await adminFetch(`/api/admin/withdrawals/${id}/approve`, { method: 'POST' });
+      const res = await adminFetch(`/api/admin/withdrawals/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'success' }),
+      });
       if (res.success) {
-        alert('✓ Withdrawal marked as approved!');
+        alert('✓ Withdrawal marked as SUCCESS / PAID!');
+        fetchWithdrawals();
+      } else {
+        alert(res.error || 'Failed to update withdrawal');
+      }
+    } catch {
+      alert('Network error while updating withdrawal');
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    if (!confirm('Mark this withdrawal request as APPROVED (Processing)?')) return;
+    try {
+      const res = await adminFetch(`/api/admin/withdrawals/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'approved' }),
+      });
+      if (res.success) {
+        alert('✓ Withdrawal marked as APPROVED!');
         fetchWithdrawals();
       } else {
         alert(res.error || 'Failed to approve withdrawal');
@@ -120,8 +141,8 @@ export default function WithdrawalsPage() {
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="paid">Paid</option>
+            <option value="approved">Approved (Processing)</option>
+            <option value="success">Success / Paid</option>
             <option value="rejected">Rejected</option>
           </select>
           <button
@@ -263,14 +284,22 @@ export default function WithdrawalsPage() {
                       <td>
                         <span
                           className={`admin-badge ${
-                            w.status === 'paid' || w.status === 'approved'
+                            w.status === 'success' || w.status === 'paid'
                               ? 'admin-badge-success'
+                              : w.status === 'approved'
+                              ? 'admin-badge-info'
                               : w.status === 'rejected'
                               ? 'admin-badge-danger'
                               : 'admin-badge-warning'
                           }`}
                         >
-                          {w.status}
+                          {w.status === 'success' || w.status === 'paid'
+                            ? '✓ Success'
+                            : w.status === 'approved'
+                            ? 'Approved'
+                            : w.status === 'rejected'
+                            ? '✕ Rejected'
+                            : 'Pending'}
                         </span>
                       </td>
 
@@ -284,8 +313,9 @@ export default function WithdrawalsPage() {
                         {isPending ? (
                           <div style={{ display: 'inline-flex', gap: '6px' }}>
                             <button
-                              onClick={() => handleApprove(w.id)}
+                              onClick={() => handleMarkSuccess(w.id)}
                               className="admin-button"
+                              title="Confirm payment & mark as Success"
                               style={{
                                 background: '#10b981',
                                 padding: '4px 8px',
@@ -293,7 +323,47 @@ export default function WithdrawalsPage() {
                                 fontWeight: 700,
                               }}
                             >
+                              ✓ Pay (Success)
+                            </button>
+                            <button
+                              onClick={() => handleApprove(w.id)}
+                              className="admin-button"
+                              title="Mark as Approved / Processing"
+                              style={{
+                                background: '#3b82f6',
+                                padding: '4px 8px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                              }}
+                            >
                               Approve
+                            </button>
+                            <button
+                              onClick={() => handleReject(w.id)}
+                              className="admin-button admin-button-danger"
+                              style={{
+                                padding: '4px 8px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : w.status === 'approved' ? (
+                          <div style={{ display: 'inline-flex', gap: '6px' }}>
+                            <button
+                              onClick={() => handleMarkSuccess(w.id)}
+                              className="admin-button"
+                              title="Complete payment and mark as Success"
+                              style={{
+                                background: '#10b981',
+                                padding: '4px 8px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                              }}
+                            >
+                              ✓ Mark Success
                             </button>
                             <button
                               onClick={() => handleReject(w.id)}
