@@ -29,7 +29,19 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
     throw new Error('Invalid transaction amount');
   }
 
-  const userRef = adminDb.collection('users').doc(userId);
+  let userRef = adminDb.collection('users').doc(userId);
+  const userCheck = await userRef.get();
+  if (!userCheck.exists) {
+    const numId = Number(userId);
+    let q = !isNaN(numId) ? await adminDb.collection('users').where('telegramId', '==', numId).limit(1).get() : null;
+    if (!q || q.empty) {
+      q = await adminDb.collection('users').where('telegramId', '==', String(userId)).limit(1).get();
+    }
+    if (q && !q.empty) {
+      userRef = q.docs[0].ref;
+    }
+  }
+
   const txRef = adminDb.collection('transactions').doc();
 
   const result = await adminDb.runTransaction(async (transaction) => {
@@ -53,11 +65,14 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
     if (type === 'withdrawal' && amount < 0) {
       updateData.lifetimeWithdrawn = Number(userData.lifetimeWithdrawn || 0) + Math.abs(amount);
     }
+    if (type === 'withdrawal_reversal') {
+      updateData.lifetimeWithdrawn = Math.max(0, Number(userData.lifetimeWithdrawn || 0) - amount);
+    }
 
     transaction.update(userRef, updateData);
 
     transaction.set(txRef, {
-      userId,
+      userId: userRef.id,
       type,
       amount,
       balanceBefore,

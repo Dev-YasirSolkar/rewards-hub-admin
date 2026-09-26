@@ -25,9 +25,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const withdrawalRef = adminDb.collection('withdrawals').doc(id);
     
     const doc = await withdrawalRef.get();
-    if (!doc.exists) return badRequest('Withdrawal not found');
-    const data = doc.data();
-    if (data?.status !== 'pending') return badRequest('Withdrawal is not pending');
+    if (!doc.exists || !doc.data()) return badRequest('Withdrawal not found');
+    const data = doc.data()!;
+
+    const validStatuses = ['pending', 'processing', 'approved'];
+    if (!validStatuses.includes(data?.status)) {
+      return badRequest(`Withdrawal cannot be rejected because it is already '${data?.status || 'processed'}'`);
+    }
 
     await withdrawalRef.update({
       status: 'rejected',

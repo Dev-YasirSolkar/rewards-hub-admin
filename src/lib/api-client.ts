@@ -19,6 +19,11 @@ export async function adminFetch<T = any>(
     }
 
     const json = await res.json();
+    if (json && !json.success && json.error) {
+      if (typeof json.error === 'object') {
+        json.error = json.error.message || json.error.code || JSON.stringify(json.error);
+      }
+    }
     return json;
   } catch (error: any) {
     return {

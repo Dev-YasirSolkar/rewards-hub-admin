@@ -65,6 +65,13 @@ export default function WithdrawalsPage() {
     }
   };
 
+  const getErrorMessage = (err: any, fallback: string) => {
+    if (!err) return fallback;
+    if (typeof err === 'string') return err;
+    if (typeof err === 'object') return err.message || err.code || JSON.stringify(err);
+    return String(err);
+  };
+
   const handleMarkSuccess = async (id: string) => {
     if (!confirm('Mark this withdrawal as SUCCESS / PAID? Confirm you have sent the payment to user.')) return;
     try {
@@ -76,7 +83,7 @@ export default function WithdrawalsPage() {
         alert('Withdrawal marked as SUCCESS / PAID');
         fetchWithdrawals();
       } else {
-        alert(res.error || 'Failed to update withdrawal');
+        alert(getErrorMessage(res.error, 'Failed to update withdrawal'));
       }
     } catch {
       alert('Network error while updating withdrawal');
@@ -94,7 +101,7 @@ export default function WithdrawalsPage() {
         alert('Withdrawal status updated to PROCESSING');
         fetchWithdrawals();
       } else {
-        alert(res.error || 'Failed to update withdrawal');
+        alert(getErrorMessage(res.error, 'Failed to update withdrawal'));
       }
     } catch {
       alert('Network error while updating status');
@@ -113,7 +120,7 @@ export default function WithdrawalsPage() {
         alert('Withdrawal rejected and points refunded to user wallet');
         fetchWithdrawals();
       } else {
-        alert(res.error || 'Failed to reject withdrawal');
+        alert(getErrorMessage(res.error, 'Failed to reject withdrawal'));
       }
     } catch {
       alert('Network error while rejecting');
