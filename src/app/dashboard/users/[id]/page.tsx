@@ -27,6 +27,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [suspendReason, setSuspendReason] = useState('');
   const [submittingSuspend, setSubmittingSuspend] = useState(false);
 
+  // Clear cache state
+  const [clearingCache, setClearingCache] = useState(false);
+
   useEffect(() => {
     fetchUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,6 +147,26 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const handleClearCache = async () => {
+    if (!confirm('Clear and invalidate all local caches for this user? When the user next opens the app, all local storage buffers and cached states will be purged.')) return;
+    setClearingCache(true);
+    try {
+      const res = await adminFetch(`/api/admin/users/${encodeURIComponent(id)}/clear-cache`, {
+        method: 'POST',
+      });
+      if (res.success) {
+        alert('User local caches invalidated successfully! The client app will purge local storage buffer.');
+        fetchUser();
+      } else {
+        alert(res.error || 'Failed to clear user cache');
+      }
+    } catch {
+      alert('Network error clearing user cache');
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
   if (loading) return <div style={{ color: '#8b949e', padding: '24px' }}>Loading user details...</div>;
 
   if (errorMsg || !user) {
@@ -254,6 +277,20 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                 Block / Suspend User
               </button>
             )}
+
+            <button
+              className="admin-button"
+              onClick={handleClearCache}
+              disabled={clearingCache}
+              style={{
+                background: '#21262d',
+                color: '#f0f6fc',
+                border: '1px solid #30363d',
+                fontSize: '13px',
+              }}
+            >
+              {clearingCache ? 'Clearing...' : '🧹 Clear User Caches'}
+            </button>
           </div>
         </div>
 
@@ -302,9 +339,24 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </div>
 
-          <button className="admin-button" onClick={() => setShowAdjustModal(true)} style={{ marginTop: '16px', fontSize: '13px' }}>
-            Adjust Balance
-          </button>
+          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button className="admin-button" onClick={() => setShowAdjustModal(true)} style={{ fontSize: '13px' }}>
+              Adjust Balance
+            </button>
+            <button
+              className="admin-button"
+              onClick={handleClearCache}
+              disabled={clearingCache}
+              style={{
+                background: '#21262d',
+                color: '#f0f6fc',
+                border: '1px solid #30363d',
+                fontSize: '13px',
+              }}
+            >
+              {clearingCache ? 'Clearing...' : '🧹 Clear Caches'}
+            </button>
+          </div>
         </div>
       </div>
 
