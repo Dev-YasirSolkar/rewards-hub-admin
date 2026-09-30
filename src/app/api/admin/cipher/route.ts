@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { getAuthUser, unauthorized, serverError, badRequest } from '@/lib/auth';
-import { logAudit } from '@/lib/audit';
+import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
+import { createAuditLog } from '@/lib/audit';
 
 function getTodayString() {
   const d = new Date();
@@ -10,8 +10,8 @@ function getTodayString() {
 
 export async function GET(request: NextRequest) {
   try {
-    const authUser = await getAuthUser(request);
-    if (!authUser) return unauthorized();
+    const admin = await authenticateAdmin(request);
+    if (!admin) return forbiddenResponse();
 
     const doc = await adminDb.collection('adminSettings').doc('cipher').get();
     const data = doc.exists ? doc.data() : {};
@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authUser = await getAuthUser(request);
-    if (!authUser) return unauthorized();
+    const admin = await authenticateAdmin(request);
+    if (!admin) return forbiddenResponse();
 
     const body = await request.json();
     const { word, rewardAmount = 500, hint = '' } = body;
@@ -54,15 +54,16 @@ export async function POST(request: NextRequest) {
       hint: hint.trim(),
       date: today,
       updatedAt: new Date().toISOString(),
-      updatedBy: authUser.email || authUser.id,
+      updatedBy: admin.username || admin.id,
     };
 
     await adminDb.collection('adminSettings').doc('cipher').set(updatePayload, { merge: true });
 
-    await logAudit({
-      userId: authUser.id,
+    await createAuditLog({
+      performedBy: admin.id,
       action: 'UPDATE_DAILY_CIPHER',
-      target: 'adminSettings/cipher',
+      targetId: 'cipher',
+      targetType: 'adminSettings',
       details: { word: cleanWord, rewardAmount, date: today },
     });
 

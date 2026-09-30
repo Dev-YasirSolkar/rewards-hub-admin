@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { getAuthUser, unauthorized, serverError, badRequest } from '@/lib/auth';
-import { logAudit } from '@/lib/audit';
+import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
+import { createAuditLog } from '@/lib/audit';
 
 const ALL_CARDS = [
   { id: 'crypto_bot', name: 'AI Trading Bot', category: 'Tech & AI', icon: '🤖' },
@@ -25,8 +25,8 @@ function getTodayString() {
 
 export async function GET(request: NextRequest) {
   try {
-    const authUser = await getAuthUser(request);
-    if (!authUser) return unauthorized();
+    const admin = await authenticateAdmin(request);
+    if (!admin) return forbiddenResponse();
 
     const doc = await adminDb.collection('adminSettings').doc('combo').get();
     const data = doc.exists ? doc.data() : {};
@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authUser = await getAuthUser(request);
-    if (!authUser) return unauthorized();
+    const admin = await authenticateAdmin(request);
+    if (!admin) return forbiddenResponse();
 
     const body = await request.json();
     const { cards = [], rewardAmount = 1000 } = body;
@@ -71,15 +71,16 @@ export async function POST(request: NextRequest) {
       rewardAmount: Number(rewardAmount),
       date: today,
       updatedAt: new Date().toISOString(),
-      updatedBy: authUser.email || authUser.id,
+      updatedBy: admin.username || admin.id,
     };
 
     await adminDb.collection('adminSettings').doc('combo').set(updatePayload, { merge: true });
 
-    await logAudit({
-      userId: authUser.id,
+    await createAuditLog({
+      performedBy: admin.id,
       action: 'UPDATE_DAILY_COMBO',
-      target: 'adminSettings/combo',
+      targetId: 'combo',
+      targetType: 'adminSettings',
       details: { cards, rewardAmount, date: today },
     });
 
