@@ -27,6 +27,8 @@ if (!getApps().length) {
   adminApp = getApps()[0] as App;
 }
 
-const adminDb = getFirestore(adminApp);
+const databaseId = process.env.FIREBASE_DATABASE_ID || process.env.NEXT_PUBLIC_FIREBASE_DATABASE_ID;
+
+const adminDb = databaseId ? getFirestore(adminApp, databaseId) : getFirestore(adminApp);
 
 export { adminDb, adminApp };
