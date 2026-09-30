@@ -35,15 +35,15 @@ export default function AdminDashboard() {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 4px' }}>Platform Metrics</h2>
-            <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>Loading real-time platform statistics...</p>
+            <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px', color: '#fff' }}>Platform Telemetry</h2>
+            <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>Loading real-time cluster statistics...</p>
           </div>
         </div>
         <div className="admin-grid">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="admin-card">
-              <div className="stat-label">Metric</div>
-              <div className="stat-value">--</div>
+            <div key={i} className="stat-card" style={{ height: '110px' }}>
+              <div className="stat-label">Metric Loading</div>
+              <div className="stat-value" style={{ color: '#64748b' }}>--</div>
             </div>
           ))}
         </div>
@@ -55,8 +55,8 @@ export default function AdminDashboard() {
     return (
       <div>
         <div className="admin-card" style={{ borderColor: '#ef4444' }}>
-          <p style={{ color: '#ef4444', margin: '0 0 12px', fontWeight: 600 }}>{error}</p>
-          <button className="admin-button" onClick={fetchStats}>
+          <p style={{ color: '#ef4444', margin: '0 0 12px', fontWeight: 700 }}>{error}</p>
+          <button className="btn-3d-danger" onClick={fetchStats}>
             Retry Loading
           </button>
         </div>
@@ -79,156 +79,203 @@ export default function AdminDashboard() {
     typeof stats?.paidWithdrawals === 'object' ? stats.paidWithdrawals?.sum ?? 0 : 0;
 
   const statItems = [
-    { label: 'Total Members', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#3b82f6' },
-    { label: 'Active Users', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#10b981' },
-    { label: 'Joined Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#f59e0b' },
+    { label: 'Total Registered Members', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
+    { label: 'Active 24h Users', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
+    { label: 'New Signups Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
     {
       label: 'Points Distributed',
-      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} pts`,
+      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} PTS`,
       icon: '💰',
-      color: '#f59e0b',
+      color: '#F59E0B',
+      aura: 'rgba(245, 158, 11, 0.25)'
     },
     {
       label: 'Pending Payouts',
-      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} pts)`,
+      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} PTS)`,
       icon: '⏳',
-      color: '#ef4444',
+      color: '#F87171',
+      aura: 'rgba(248, 113, 113, 0.25)'
     },
     {
       label: 'Settled Payouts',
-      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} pts)`,
+      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} PTS)`,
       icon: '✅',
-      color: '#10b981',
+      color: '#10B981',
+      aura: 'rgba(16, 185, 129, 0.25)'
     },
-    { label: 'Active Tasks', value: (stats?.activeTasks ?? 0).toLocaleString(), icon: '📋', color: '#3b82f6' },
-    { label: 'Task Claims Today', value: (stats?.taskCompletionsToday ?? 0).toLocaleString(), icon: '🎯', color: '#10b981' },
+    { label: 'Active Missions', value: (stats?.activeTasks ?? 0).toLocaleString(), icon: '📋', color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
+    { label: 'Task Claims Today', value: (stats?.taskCompletionsToday ?? 0).toLocaleString(), icon: '🎯', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
   ];
 
   return (
     <div>
+      {/* ── TOP HEADER ──────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 4px', color: '#f8fafc' }}>
-            System Dashboard
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '3px 10px',
+            borderRadius: '999px',
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            marginBottom: '6px'
+          }}>
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#10b981',
+              boxShadow: '0 0 8px #10b981'
+            }} />
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              Live Authoritative Node
+            </span>
+          </div>
+          <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '0 0 4px', color: '#f8fafc', letterSpacing: '-0.4px' }}>
+            Operations & Telemetry Control
           </h2>
           <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
             Real-time telemetry, user acquisition, task engagement, and financial payouts.
           </p>
         </div>
+
         <button
-          className="admin-button"
+          className="btn-3d-blue"
           onClick={fetchStats}
           style={{ padding: '8px 16px', fontSize: '13px' }}
         >
-          ↻ Refresh Metrics
+          ↻ Refresh Node Stats
         </button>
       </div>
 
-      {/* Grid of Key Performance Indicators */}
+      {/* ── 3D LUMINOUS KPI GRID ────────────────────────────────────────────── */}
       <div className="admin-grid">
         {statItems.map((item, i) => (
-          <div key={i} className="admin-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div key={i} className="stat-card" style={{ padding: '16px 18px' }}>
+            {/* Radial Aura Backlight */}
+            <div style={{
+              position: 'absolute',
+              top: '-15px',
+              right: '-15px',
+              width: '70px',
+              height: '70px',
+              borderRadius: '50%',
+              background: `radial-gradient(circle, ${item.aura} 0%, transparent 70%)`,
+              pointerEvents: 'none'
+            }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
               <div className="stat-label">{item.label}</div>
               <span style={{ fontSize: '20px' }}>{item.icon}</span>
             </div>
-            <div className="stat-value" style={{ color: item.color }}>{item.value}</div>
+            <div className="stat-value" style={{ color: item.color, position: 'relative', zIndex: 1 }}>
+              {item.value}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Quick Action Control Hub */}
+      {/* ── 3D QUICK ACTION CONTROL HUB ─────────────────────────────────────── */}
       <div className="admin-card">
-        <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px', color: '#f8fafc' }}>
-          ⚡ Admin Operations & Quick Actions
+        <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 16px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>⚡ Admin Operations & Quick Control</span>
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
           <Link
             href="/dashboard/withdrawals"
             style={{
-              padding: '14px',
-              borderRadius: '10px',
-              background: '#090d16',
-              border: '1px solid #1e293b',
+              padding: '16px',
+              borderRadius: '14px',
+              background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
+              border: '1px solid rgba(251, 191, 36, 0.25)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700 }}>Review Payouts</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>Approve UPI & Bank transfers</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FDE047' }}>💳 Review Payouts</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Approve UPI & Bank transfers</div>
             </div>
-            <span>→</span>
+            <span style={{ fontSize: '18px', color: '#FDE047' }}>→</span>
           </Link>
 
           <Link
             href="/dashboard/tasks"
             style={{
-              padding: '14px',
-              borderRadius: '10px',
-              background: '#090d16',
-              border: '1px solid #1e293b',
+              padding: '16px',
+              borderRadius: '14px',
+              background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700 }}>Create New Task</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>Channels, websites & social</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>📋 Create Mission</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Channels, websites & social</div>
             </div>
-            <span>→</span>
+            <span style={{ fontSize: '18px', color: '#38bdf8' }}>→</span>
           </Link>
 
           <Link
-            href="/dashboard/notifications"
+            href="/dashboard/daily-activities"
             style={{
-              padding: '14px',
-              borderRadius: '10px',
-              background: '#090d16',
-              border: '1px solid #1e293b',
+              padding: '16px',
+              borderRadius: '14px',
+              background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700 }}>Broadcast Message</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>Push announcement to users</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f87171' }}>🎯 Daily Combo & Cipher</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Set daily mystery words & cards</div>
             </div>
-            <span>→</span>
+            <span style={{ fontSize: '18px', color: '#f87171' }}>→</span>
           </Link>
 
           <Link
             href="/dashboard/settings"
             style={{
-              padding: '14px',
-              borderRadius: '10px',
-              background: '#090d16',
-              border: '1px solid #1e293b',
+              padding: '16px',
+              borderRadius: '14px',
+              background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700 }}>Ad Network & Settings</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>Tune rewards & rate limits</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399' }}>⚙️ Ad Network & Config</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Tune rewards & rate limits</div>
             </div>
-            <span>→</span>
+            <span style={{ fontSize: '18px', color: '#34d399' }}>→</span>
           </Link>
         </div>
       </div>
     </div>
   );
 }
-
