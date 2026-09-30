@@ -57,6 +57,7 @@ export default function DashboardLayout({
     {
       category: 'Growth & Ads',
       items: [
+        { name: 'Daily Activities', icon: '🕵️', path: '/dashboard/daily-activities' },
         { name: 'Tasks', icon: '📋', path: '/dashboard/tasks' },
         { name: 'Affiliates', icon: '🤝', path: '/dashboard/affiliates' },
         { name: 'Settings & Ads', icon: '⚙️', path: '/dashboard/settings' },

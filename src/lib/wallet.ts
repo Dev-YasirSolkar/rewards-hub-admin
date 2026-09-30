@@ -8,6 +8,8 @@ export type TransactionType =
   | 'checkin_bonus_2x'
   | 'tap_reward'
   | 'spin_reward'
+  | 'cipher_reward'
+  | 'combo_reward'
   | 'referral_bonus'
   | 'ad_reward'
   | 'affiliate_reward'
