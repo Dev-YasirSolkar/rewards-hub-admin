@@ -352,6 +352,65 @@ export default function DailyActivitiesAdminPage() {
           </form>
         </div>
       </div>
+
+      {/* 3. Passive Mining & Card Economy Reference Card */}
+      <div
+        className="admin-card"
+        style={{
+          marginTop: '1.5rem',
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(15, 23, 42, 0.6))',
+          border: '1px solid rgba(16, 185, 129, 0.25)',
+          borderRadius: '12px',
+          padding: '1.25rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '1.4rem' }}>⛏️</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
+              Phase 3: Passive Mining & Cards Economy
+            </h3>
+          </div>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              padding: '0.2rem 0.6rem',
+              borderRadius: '999px',
+              background: 'rgba(16, 185, 129, 0.2)',
+              color: '#34d399',
+            }}
+          >
+            ACTIVE & ENFORCED
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '0.75rem' }}>
+          <div style={{ background: '#0f172a', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Max Offline Earning Cap</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#38bdf8', marginTop: '0.2rem' }}>3 Hours Max</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Pauses after 3h until claimed</div>
+          </div>
+
+          <div style={{ background: '#0f172a', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Upgradeable Cards</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#facc15', marginTop: '0.2rem' }}>16 Cards (4 Tiers)</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Markets, PR, Tech & Legal</div>
+          </div>
+
+          <div style={{ background: '#0f172a', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>2X Monetag Ad Bonus</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#4ade80', marginTop: '0.2rem' }}>Active & Monitored</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Session verification on claim</div>
+          </div>
+
+          <div style={{ background: '#0f172a', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Anti-Cheat Protection</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f43f5e', marginTop: '0.2rem' }}>Server Authoritative</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Zero client trust on math</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
