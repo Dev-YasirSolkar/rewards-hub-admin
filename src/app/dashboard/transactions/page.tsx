@@ -17,7 +17,9 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const url = typeFilter === 'all' ? '/api/admin/transactions' : `/api/admin/transactions?type=${typeFilter}`;
+      const url = typeFilter === 'all'
+        ? '/api/admin/transactions?refresh=true'
+        : `/api/admin/transactions?type=${typeFilter}&refresh=true`;
       const res = await adminFetch(url);
       if (res.success && res.data) {
         setTransactions(Array.isArray(res.data) ? res.data : (res.data as any).transactions || []);
@@ -43,108 +45,113 @@ export default function TransactionsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#f0f6fc' }}>Global Transactions</h2>
-          <p style={{ margin: '4px 0 0', color: '#8b949e', fontSize: '0.875rem' }}>
-            Live ledger of all points earned, bonuses credited, and withdrawals requested.
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>💰</span> Global Points Ledger
+          </h2>
+          <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>
+            Real-time ledger of user points earned, mining claims, referral bonuses, and payout debits.
           </p>
         </div>
-        <button onClick={fetchTransactions} className="admin-button" style={{ padding: '6px 14px', fontSize: '13px' }}>
-          ↻ Refresh
+        <button onClick={fetchTransactions} className="btn-3d-blue" style={{ padding: '6px 14px', fontSize: '12px' }}>
+          ↻ Refresh Ledger
         </button>
       </div>
 
-      <div className="admin-card" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <label style={{ color: '#8b949e', fontSize: '0.875rem' }}>Filter by Type:</label>
+      <div className="admin-card" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', padding: '12px 18px' }}>
+        <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Filter Activity:</span>
         <select 
-          className="admin-input"
-          style={{ width: 'auto', minWidth: '180px', margin: 0 }}
+          className="admin-select"
+          style={{ width: 'auto', minWidth: '220px' }}
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
         >
-          <option value="all">All Types</option>
-          <option value="task_reward">Task Reward</option>
-          <option value="daily_bonus">Daily Check-In</option>
-          <option value="referral_bonus">Referral Bonus</option>
-          <option value="withdrawal">Withdrawal</option>
+          <option value="all">All Transactions</option>
+          <option value="tap_claim">Tap Claim</option>
+          <option value="mining_claim">Passive Mining Claim</option>
+          <option value="cipher_reward">Daily Cipher Reward</option>
+          <option value="combo_reward">Daily Combo Reward</option>
+          <option value="task_reward">Task Completion Reward</option>
+          <option value="daily_bonus">Daily Check-In Bonus</option>
+          <option value="referral_bonus">Referral Commission</option>
+          <option value="withdrawal">Withdrawal Request</option>
           <option value="withdrawal_reversal">Withdrawal Reversal (Refund)</option>
-          <option value="admin_adjustment">Admin Adjustment</option>
+          <option value="admin_adjustment">Admin Manual Adjustment</option>
         </select>
       </div>
 
-      <div className="admin-card admin-table-container">
+      <div className="admin-card">
         {loading ? (
-          <p style={{ color: '#8b949e', textAlign: 'center', padding: '20px' }}>Loading transactions...</p>
+          <div style={{ padding: '20px 0' }}>
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px' }} />
+          </div>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Tx ID</th>
-                <th>User ID</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Description</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.length === 0 ? (
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#8b949e' }}>
-                    No transactions found for this filter.
-                  </td>
+                  <th>Tx ID</th>
+                  <th>Member ID</th>
+                  <th>Type</th>
+                  <th>Points Delta</th>
+                  <th>Description</th>
+                  <th>Timestamp</th>
                 </tr>
-              ) : (
-                transactions.map(t => {
-                  const isPositive = t.amount > 0;
-                  return (
-                    <tr key={t.id}>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#8b949e' }}>
-                        {t.id?.substring(0, 8)}...
-                      </td>
-                      <td>
-                        <Link href={`/dashboard/users/${t.userId}`} style={{ color: '#58a6ff', textDecoration: 'none', fontFamily: 'monospace' }}>
-                          {t.userId}
-                        </Link>
-                      </td>
-                      <td>
-                        <span style={{
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          background: '#21262d',
-                          color: '#c9d1d9',
-                          border: '1px solid #30363d',
-                          textTransform: 'capitalize',
-                        }}>
-                          {t.type?.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{
-                          fontWeight: 700,
-                          fontSize: '0.9rem',
-                          color: isPositive ? '#3fb950' : '#f85149',
-                        }}>
-                          {isPositive ? '+' : ''}{t.amount} pts
-                        </span>
-                      </td>
-                      <td style={{ fontSize: '0.85rem', color: '#c9d1d9', maxWidth: '300px' }}>
-                        {t.description || '—'}
-                      </td>
-                      <td style={{ fontSize: '0.8rem', color: '#8b949e', whiteSpace: 'nowrap' }}>
-                        {formatDate(t.createdAt)}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '28px', color: '#64748b' }}>
+                      No transactions recorded for this filter criteria.
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((t) => {
+                    const isPositive = Number(t.amount) > 0;
+                    return (
+                      <tr key={t.id}>
+                        <td style={{ fontFamily: 'monospace', fontSize: '11px', color: '#64748b' }}>
+                          {t.id?.substring(0, 10)}...
+                        </td>
+                        <td>
+                          <Link href={`/dashboard/users/${t.userId}`} style={{ color: '#38bdf8', textDecoration: 'none', fontFamily: 'monospace', fontWeight: 700, fontSize: '12px' }}>
+                            {t.userId?.substring(0, 12)}...
+                          </Link>
+                        </td>
+                        <td>
+                          <span className="badge-blue">
+                            {t.type?.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{
+                            fontWeight: 900,
+                            fontSize: '13px',
+                            color: isPositive ? '#34d399' : '#f87171',
+                            letterSpacing: '-0.01em',
+                          }}>
+                            {isPositive ? '+' : ''}{Number(t.amount).toLocaleString()} PTS
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '12px', color: '#94a3b8', maxWidth: '300px' }}>
+                          {t.description || '—'}
+                        </td>
+                        <td style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                          {formatDate(t.createdAt)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
   );
 }
-

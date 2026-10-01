@@ -4,6 +4,7 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendTelegramMessage } from '@/lib/notifications';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -17,6 +18,15 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    const cacheKey = `admin_broadcasts:${limit}`;
+    if (!forceRefresh) {
+      const cached = getCached<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, notifications: cached, cached: true });
+      }
+    }
 
     let snapshot;
     try {
@@ -40,7 +50,9 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({ success: true, data: broadcasts, notifications: broadcasts });
+    setCached(cacheKey, broadcasts, 60);
+
+    return NextResponse.json({ success: true, data: broadcasts, notifications: broadcasts, cached: false });
   } catch (error) {
     return serverError(error);
   }
@@ -104,6 +116,8 @@ export async function POST(request: Request) {
       action: 'send_broadcast',
       details: { broadcastId: docRef.id, title, target, sentCount },
     });
+
+    invalidateCache('admin_broadcasts');
 
     return NextResponse.json({ success: true, data: { id: docRef.id, ...broadcastData } });
   } catch (error) {

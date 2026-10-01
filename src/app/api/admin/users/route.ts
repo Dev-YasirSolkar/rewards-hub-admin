@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -15,8 +16,17 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
-    const status = searchParams.get('status');
-    const search = searchParams.get('search')?.toLowerCase().trim();
+    const status = searchParams.get('status') || 'all';
+    const search = searchParams.get('search')?.toLowerCase().trim() || '';
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    const cacheKey = `admin_users:${status}:${search}:${limit}`;
+    if (!forceRefresh) {
+      const cached = getCached<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, users: cached, cached: true });
+      }
+    }
 
     let query: any = adminDb.collection('users');
 
@@ -28,7 +38,7 @@ export async function GET(request: Request) {
     try {
       snapshot = await query.orderBy('createdAt', 'desc').limit(limit).get();
     } catch {
-      // Fallback if index on status + createdAt is missing
+      // Fallback if composite index on status + createdAt is missing
       snapshot = await query.limit(limit).get();
     }
 
@@ -65,7 +75,10 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({ success: true, data: users, users });
+    // Cache results for 30s
+    setCached(cacheKey, users, 30);
+
+    return NextResponse.json({ success: true, data: users, users, cached: false });
   } catch (error) {
     return serverError(error);
   }

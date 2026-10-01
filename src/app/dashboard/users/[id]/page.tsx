@@ -167,7 +167,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  if (loading) return <div style={{ color: '#8b949e', padding: '24px' }}>Loading user details...</div>;
+  if (loading) {
+    return (
+      <div style={{ padding: '20px 0' }}>
+        <div className="skeleton-box" style={{ height: '120px', marginBottom: '16px' }} />
+        <div className="skeleton-box" style={{ height: '220px', marginBottom: '16px' }} />
+        <div className="skeleton-box" style={{ height: '280px' }} />
+      </div>
+    );
+  }
 
   if (errorMsg || !user) {
     return (

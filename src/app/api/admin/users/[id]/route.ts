@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached } from '@/lib/cache';
 
 function formatFirestoreData(data: Record<string, any>) {
   const result: Record<string, any> = {};
@@ -28,6 +29,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const cleanId = decodeURIComponent(id).trim();
+
+    const cacheKey = `admin_user:${cleanId}`;
+    const cached = getCached<any>(cacheKey);
+    if (cached) {
+      return NextResponse.json({ success: true, data: cached, cached: true });
+    }
 
     // 1. Try finding user by Document ID
     let userDoc = await adminDb.collection('users').doc(cleanId).get();
@@ -112,14 +119,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       savedBankDetails: rawUserData.savedBankDetails || null,
     };
 
+    const responseData = {
+      user: formattedUser,
+      transactions,
+      referrals,
+      withdrawals,
+    };
+
+    setCached(cacheKey, responseData, 20);
+
     return NextResponse.json({
       success: true,
-      data: {
-        user: formattedUser,
-        transactions,
-        referrals,
-        withdrawals,
-      }
+      data: responseData,
     });
   } catch (error) {
     console.error('Error fetching admin user:', error);
@@ -204,6 +215,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         reason,
       }
     });
+
+    const { invalidateCache } = await import('@/lib/cache');
+    invalidateCache('admin_users');
+    invalidateCache('admin_dashboard');
 
     return NextResponse.json({ success: true, suspendedUntil, status });
   } catch (error) {

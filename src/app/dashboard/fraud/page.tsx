@@ -137,7 +137,12 @@ export default function FraudPage() {
 
       <div className="admin-card admin-table-container">
         {loading ? (
-          <p style={{ color: '#8b949e', textAlign: 'center', padding: '20px' }}>Loading fraud flags...</p>
+          <div style={{ padding: '20px 16px' }}>
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px' }} />
+          </div>
         ) : (
           <table className="admin-table">
             <thead>

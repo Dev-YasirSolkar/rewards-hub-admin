@@ -63,93 +63,134 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Broadcast Notifications</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+        <div>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>📢</span> Broadcast Notifications
+          </h2>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
+            Transmit live announcements and event notifications directly to Telegram users.
+          </p>
+        </div>
+        <button onClick={fetchHistory} className="btn-3d-blue" style={{ fontSize: '12px', padding: '6px 14px' }}>
+          ↻ Refresh Ledger
+        </button>
+      </div>
 
       <div className="admin-card">
-        <h3 className="text-xl mb-4">Send Broadcast</h3>
+        <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 14px', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span>✉️</span> Compose Broadcast Message
+        </h3>
         <form onSubmit={handleSend}>
-          <input
-            type="text"
-            className="admin-input"
-            placeholder="Broadcast Title (e.g. Weekend Double Rewards!)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{ marginBottom: '10px' }}
-          />
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase' }}>
+              Broadcast Title
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="e.g. 🚀 Weekend Double Rewards & New Mining Boost!"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
 
-          <textarea
-            className="admin-input min-h-[100px]"
-            placeholder="Enter message to broadcast to all Telegram bot users..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          ></textarea>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase' }}>
+              Message Body (HTML Supported)
+            </label>
+            <textarea
+              className="admin-textarea"
+              placeholder="Enter message text to broadcast to users..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+            />
+          </div>
 
-          <div className="flex justify-between items-center mt-2 flex-wrap gap-2">
-            <select
-              className="admin-input w-auto m-0"
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-            >
-              <option value="all">All Users</option>
-              <option value="active">Active Users</option>
-            </select>
-            <button type="submit" className="admin-button" disabled={sending}>
-              {sending ? 'Sending Broadcast...' : 'Send Broadcast'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>RECIPIENTS:</span>
+              <select
+                className="admin-select"
+                style={{ width: 'auto', minWidth: '150px' }}
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+              >
+                <option value="all">All Members</option>
+                <option value="active">Active Members Only</option>
+              </select>
+            </div>
+            <button type="submit" className="btn-3d-gold" disabled={sending}>
+              {sending ? 'Broadcasting...' : '⚡ Send Broadcast Now'}
             </button>
           </div>
         </form>
       </div>
 
-      <div className="admin-card admin-table-container">
-        <h3 className="text-xl mb-4">Broadcast History</h3>
+      <div className="admin-card">
+        <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 14px', color: '#fff' }}>
+          Broadcast History
+        </h3>
         {loading ? (
-          <p>Loading...</p>
+          <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8' }}>
+            <div className="skeleton-box" style={{ height: '36px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '36px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '36px' }} />
+          </div>
         ) : (
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Message</th>
-                <th>Target</th>
-                <th>Sent Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.length === 0 ? (
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: '#8b949e' }}>
-                    No broadcast history found.
-                  </td>
+                  <th>Title</th>
+                  <th>Message Preview</th>
+                  <th>Target</th>
+                  <th>Sent Date</th>
+                  <th>Delivered</th>
+                  <th>Status</th>
                 </tr>
-              ) : (
-                history.map((h) => (
-                  <tr key={h.id}>
-                    <td style={{ fontWeight: 600 }}>{h.title || 'Broadcast'}</td>
-                    <td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {h.message}
+              </thead>
+              <tbody>
+                {history.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '28px', color: '#64748b' }}>
+                      No broadcasts have been sent yet.
                     </td>
-                    <td style={{ textTransform: 'uppercase' }}>{h.target}</td>
-                      <td style={{ fontSize: '12px', color: '#8b949e' }}>
+                  </tr>
+                ) : (
+                  history.map((h) => (
+                    <tr key={h.id}>
+                      <td style={{ fontWeight: 700, color: '#f8fafc' }}>{h.title || 'Broadcast'}</td>
+                      <td style={{ maxWidth: '320px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#94a3b8', fontSize: '13px' }}>
+                        {h.message}
+                      </td>
+                      <td>
+                        <span className="badge-blue">{h.target}</span>
+                      </td>
+                      <td style={{ fontSize: '12px', color: '#94a3b8' }}>
                         {h.createdAt
                           ? typeof h.createdAt === 'object' && h.createdAt._seconds
                             ? new Date(h.createdAt._seconds * 1000).toLocaleString()
                             : new Date(h.createdAt).toLocaleString()
                           : 'N/A'}
                       </td>
-                    <td>
-                      <span style={{ color: '#3fb950', fontWeight: 600 }}>
-                        {h.status || 'sent'}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      <td style={{ fontWeight: 800, color: '#38bdf8' }}>
+                        {h.sentCount !== undefined ? h.sentCount : '—'}
+                      </td>
+                      <td>
+                        <span className="badge-success">
+                          {h.status || 'SENT'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
   );
 }
-

@@ -57,6 +57,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       details: { withdrawalId: id, rejectionReason, amount: data.amount }
     });
 
+    // Invalidate caches so telemetry and lists refresh immediately
+    const { invalidateCache } = await import('@/lib/cache');
+    invalidateCache('admin_withdrawals');
+    invalidateCache('admin_dashboard');
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return serverError(error);

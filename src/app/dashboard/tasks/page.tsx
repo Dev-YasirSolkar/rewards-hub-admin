@@ -197,7 +197,12 @@ export default function TasksPage() {
 
       <div className="admin-card admin-table-container">
         {loading ? (
-          <p style={{ color: '#8b949e' }}>Loading tasks...</p>
+          <div style={{ padding: '20px 16px' }}>
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px' }} />
+          </div>
         ) : (
           <table className="admin-table">
             <thead>

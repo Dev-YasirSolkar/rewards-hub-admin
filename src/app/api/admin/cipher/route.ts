@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 function getTodayString() {
   const d = new Date();
@@ -13,19 +14,29 @@ export async function GET(request: NextRequest) {
     const admin = await authenticateAdmin(request);
     if (!admin) return forbiddenResponse();
 
+    const cached = getCached<any>('admin_cipher');
+    if (cached) {
+      return Response.json({ success: true, data: cached, cached: true });
+    }
+
     const doc = await adminDb.collection('adminSettings').doc('cipher').get();
     const data = doc.exists ? doc.data() : {};
     const today = getTodayString();
 
+    const result = {
+      word: data?.word || 'REWARDS',
+      rewardAmount: Number(data?.rewardAmount || 500),
+      hint: data?.hint || 'Telegram Web3 Mystery Code',
+      date: data?.date || today,
+      updatedAt: data?.updatedAt || null,
+    };
+
+    setCached('admin_cipher', result, 60);
+
     return Response.json({
       success: true,
-      data: {
-        word: data?.word || 'REWARDS',
-        rewardAmount: Number(data?.rewardAmount || 500),
-        hint: data?.hint || 'Telegram Web3 Mystery Code',
-        date: data?.date || today,
-        updatedAt: data?.updatedAt || null,
-      },
+      data: result,
+      cached: false,
     });
   } catch (error) {
     console.error('Admin cipher get error:', error);
@@ -66,6 +77,8 @@ export async function POST(request: NextRequest) {
       targetType: 'adminSettings',
       details: { word: cleanWord, rewardAmount, date: today },
     });
+
+    invalidateCache('admin_cipher');
 
     return Response.json({
       success: true,

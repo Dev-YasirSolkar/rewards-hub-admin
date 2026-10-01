@@ -4,6 +4,7 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { adminSettingsSchema } from '@/lib/validation';
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -15,11 +16,25 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    if (!forceRefresh) {
+      const cached = getCached<any>('admin_settings');
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, cached: true });
+      }
+    }
+
     const doc = await adminDb.collection('adminSettings').doc('general').get();
+    const data = doc.exists ? doc.data() : {};
+
+    setCached('admin_settings', data, 60);
     
     return NextResponse.json({ 
       success: true, 
-      data: doc.exists ? doc.data() : {} 
+      data,
+      cached: false
     });
   } catch (error) {
     return serverError(error);
@@ -53,6 +68,9 @@ export async function PUT(request: Request) {
       action: 'update_settings',
       details: validatedData.data
     });
+
+    invalidateCache('admin_settings');
+    invalidateCache('admin_dashboard');
 
     return NextResponse.json({ success: true, data: validatedData.data });
   } catch (error) {

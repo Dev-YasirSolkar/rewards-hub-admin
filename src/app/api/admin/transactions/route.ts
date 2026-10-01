@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -15,8 +16,17 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const type = searchParams.get('type');
-    const limit = parseInt(searchParams.get('limit') || '100');
+    const type = searchParams.get('type') || 'all';
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    const cacheKey = `admin_tx:${userId || 'all'}:${type}:${limit}`;
+    if (!forceRefresh) {
+      const cached = getCached<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, transactions: cached, cached: true });
+      }
+    }
 
     let snapshot;
     const isFiltered = (userId || (type && type !== 'all'));
@@ -37,7 +47,7 @@ export async function GET(request: Request) {
       } else if (type && type !== 'all') {
         query = query.where('type', '==', type);
       }
-      snapshot = await query.limit(limit * 2).get();
+      snapshot = await query.limit(limit).get();
     }
 
     const transactions = snapshot.docs.map((doc: any) => {
@@ -62,7 +72,9 @@ export async function GET(request: Request) {
 
     transactions.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return NextResponse.json({ success: true, data: transactions, transactions });
+    setCached(cacheKey, transactions, 30);
+
+    return NextResponse.json({ success: true, data: transactions, transactions, cached: false });
   } catch (error) {
     return serverError(error);
   }

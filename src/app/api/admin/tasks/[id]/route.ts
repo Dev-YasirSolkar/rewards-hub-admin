@@ -4,6 +4,7 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { taskCreateSchema } from '@/lib/validation';
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
+import { invalidateCache } from '@/lib/cache';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -35,6 +36,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       details: { taskId: id, updates: validatedData.data }
     });
 
+    invalidateCache('admin_tasks');
+    invalidateCache('admin_dashboard');
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return serverError(error);
@@ -64,6 +68,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       action: 'delete_task',
       details: { taskId: id }
     });
+
+    invalidateCache('admin_tasks');
+    invalidateCache('admin_dashboard');
 
     return NextResponse.json({ success: true });
   } catch (error) {

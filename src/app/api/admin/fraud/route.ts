@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -17,6 +18,15 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || (searchParams.get('resolved') === 'true' ? 'resolved' : searchParams.get('resolved') === 'false' ? 'unresolved' : 'all');
     const limit = parseInt(searchParams.get('limit') || '50');
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    const cacheKey = `admin_fraud:${status}:${limit}`;
+    if (!forceRefresh) {
+      const cached = getCached<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, flags: cached, cached: true });
+      }
+    }
 
     let query: any = adminDb.collection('fraudFlags');
 
@@ -48,7 +58,9 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({ success: true, data: flags, flags });
+    setCached(cacheKey, flags, 30);
+
+    return NextResponse.json({ success: true, data: flags, flags, cached: false });
   } catch (error) {
     return serverError(error);
   }
@@ -119,6 +131,10 @@ export async function PATCH(request: Request) {
       action: 'resolve_fraud_flag',
       details: { flagId, suspendUser: !!body.suspendUser },
     });
+
+    invalidateCache('admin_fraud');
+    invalidateCache('admin_users');
+    invalidateCache('admin_dashboard');
 
     return NextResponse.json({ success: true, suspendedUntil });
   } catch (error) {

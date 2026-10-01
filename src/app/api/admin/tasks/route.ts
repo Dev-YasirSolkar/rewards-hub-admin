@@ -4,6 +4,7 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { taskCreateSchema } from '@/lib/validation';
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -15,10 +16,23 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    if (!forceRefresh) {
+      const cached = getCached<any>('admin_tasks');
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, tasks: cached, cached: true });
+      }
+    }
+
     const snapshot = await adminDb.collection('tasks').orderBy('createdAt', 'desc').get();
     const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    return NextResponse.json({ success: true, data: tasks });
+    // Cache tasks for 60 seconds
+    setCached('admin_tasks', tasks, 60);
+
+    return NextResponse.json({ success: true, data: tasks, tasks, cached: false });
   } catch (error) {
     return serverError(error);
   }
@@ -55,6 +69,9 @@ export async function POST(request: Request) {
       action: 'create_task',
       details: { taskId: docRef.id, ...validatedData.data }
     });
+
+    invalidateCache('admin_tasks');
+    invalidateCache('admin_dashboard');
 
     return NextResponse.json({ success: true, data: { id: docRef.id, ...taskData } });
   } catch (error) {

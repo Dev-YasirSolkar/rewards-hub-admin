@@ -45,6 +45,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       details: { withdrawalId: id, status: targetStatus }
     });
 
+    // Invalidate caches so telemetry and lists refresh immediately
+    const { invalidateCache } = await import('@/lib/cache');
+    invalidateCache('admin_withdrawals');
+    invalidateCache('admin_dashboard');
+
     return NextResponse.json({ success: true, status: targetStatus });
   } catch (error: any) {
     if (error.message === 'Withdrawal not found' || error.message?.startsWith('Withdrawal is already')) {

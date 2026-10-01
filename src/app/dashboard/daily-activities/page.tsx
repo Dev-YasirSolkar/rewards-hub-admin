@@ -143,8 +143,12 @@ export default function DailyActivitiesAdminPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
-        <p>Loading Daily Activities Control...</p>
+      <div style={{ padding: '20px 0' }}>
+        <div className="skeleton-box" style={{ height: '70px', marginBottom: '16px' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div className="skeleton-box" style={{ height: '360px' }} />
+          <div className="skeleton-box" style={{ height: '360px' }} />
+        </div>
       </div>
     );
   }

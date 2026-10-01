@@ -165,8 +165,11 @@ export default function WithdrawalsPage() {
       {/* Table Container */}
       <div className="admin-card admin-table-container" style={{ padding: 0 }}>
         {loading ? (
-          <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
-            Loading withdrawals...
+          <div style={{ padding: '20px 16px' }}>
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px', marginBottom: '8px' }} />
+            <div className="skeleton-box" style={{ height: '38px' }} />
           </div>
         ) : (
           <table className="admin-table">

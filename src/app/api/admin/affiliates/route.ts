@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -13,13 +14,26 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    if (!forceRefresh) {
+      const cached = getCached<any>('admin_affiliates');
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, campaigns: cached, cached: true });
+      }
+    }
+
     const snapshot = await adminDb.collection('affiliateCampaigns').orderBy('createdAt', 'desc').get();
     const campaigns = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    setCached('admin_affiliates', campaigns, 60);
 
     return NextResponse.json({
       success: true,
       data: campaigns,
       campaigns,
+      cached: false,
     });
   } catch (error) {
     return serverError(error);
@@ -44,6 +58,8 @@ export async function POST(request: Request) {
       conversions: 0,
       createdAt: new Date(),
     });
+
+    invalidateCache('admin_affiliates');
 
     return NextResponse.json({
       success: true,

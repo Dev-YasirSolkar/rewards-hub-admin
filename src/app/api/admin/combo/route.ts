@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
+import { getCached, setCached, invalidateCache } from '@/lib/cache';
 
 const ALL_CARDS = [
   { id: 'crypto_bot', name: 'AI Trading Bot', category: 'Tech & AI', icon: '🤖' },
@@ -28,6 +29,11 @@ export async function GET(request: NextRequest) {
     const admin = await authenticateAdmin(request);
     if (!admin) return forbiddenResponse();
 
+    const cached = getCached<any>('admin_combo');
+    if (cached) {
+      return Response.json({ success: true, data: cached, cached: true });
+    }
+
     const doc = await adminDb.collection('adminSettings').doc('combo').get();
     const data = doc.exists ? doc.data() : {};
     const today = getTodayString();
@@ -36,15 +42,20 @@ export async function GET(request: NextRequest) {
       ? data.cards
       : ['crypto_bot', 'viral_meme', 'ton_bridge'];
 
+    const result = {
+      cards: currentCards,
+      allCards: ALL_CARDS,
+      rewardAmount: Number(data?.rewardAmount || 1000),
+      date: data?.date || today,
+      updatedAt: data?.updatedAt || null,
+    };
+
+    setCached('admin_combo', result, 60);
+
     return Response.json({
       success: true,
-      data: {
-        cards: currentCards,
-        allCards: ALL_CARDS,
-        rewardAmount: Number(data?.rewardAmount || 1000),
-        date: data?.date || today,
-        updatedAt: data?.updatedAt || null,
-      },
+      data: result,
+      cached: false,
     });
   } catch (error) {
     console.error('Admin combo get error:', error);
@@ -83,6 +94,8 @@ export async function POST(request: NextRequest) {
       targetType: 'adminSettings',
       details: { cards, rewardAmount, date: today },
     });
+
+    invalidateCache('admin_combo');
 
     return Response.json({
       success: true,

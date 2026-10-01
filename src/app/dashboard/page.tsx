@@ -9,11 +9,11 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchStats = async () => {
+  const fetchStats = async (force: boolean = false) => {
     setLoading(true);
     setError('');
     try {
-      const res = await adminFetch('/api/admin/dashboard');
+      const res = await adminFetch(force ? '/api/admin/dashboard?refresh=true' : '/api/admin/dashboard');
       if (res.success && res.data) {
         setStats(res.data);
       } else {
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
       <div>
         <div className="admin-card" style={{ borderColor: '#ef4444' }}>
           <p style={{ color: '#ef4444', margin: '0 0 12px', fontWeight: 700 }}>{error}</p>
-          <button className="btn-3d-danger" onClick={fetchStats}>
+          <button className="btn-3d-danger" onClick={() => fetchStats()}>
             Retry Loading
           </button>
         </div>
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
 
         <button
           className="btn-3d-blue"
-          onClick={fetchStats}
+          onClick={() => fetchStats(true)}
           style={{ padding: '8px 16px', fontSize: '13px' }}
         >
           ↻ Refresh Node Stats

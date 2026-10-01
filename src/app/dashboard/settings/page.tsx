@@ -116,25 +116,34 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return <div style={{ color: '#8b949e', padding: '24px' }}>Loading system settings...</div>;
+    return (
+      <div style={{ padding: '20px 0' }}>
+        <div className="skeleton-box" style={{ height: '70px', marginBottom: '16px' }} />
+        <div className="skeleton-box" style={{ height: '180px', marginBottom: '16px' }} />
+        <div className="skeleton-box" style={{ height: '220px', marginBottom: '16px' }} />
+        <div className="skeleton-box" style={{ height: '240px' }} />
+      </div>
+    );
   }
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 4px' }}>System Settings</h2>
-          <p style={{ margin: 0, color: '#8b949e', fontSize: '13px' }}>
-            Modify reward amounts, ads configuration, referral incentives, and withdrawal rules. Any changes reflect in the User App immediately.
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>⚙️</span> Platform Economy & System Configuration
+          </h2>
+          <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>
+            Modify reward amounts, ads configuration, referral incentives, and withdrawal rules. Changes propagate in real-time.
           </p>
         </div>
         <button
-          className="admin-button"
+          className="btn-3d-gold"
           onClick={saveSettings}
           disabled={saving}
-          style={{ padding: '10px 20px', fontSize: '14px' }}
+          style={{ padding: '10px 22px', fontSize: '13px' }}
         >
-          {saving ? 'Saving...' : '💾 Save Settings'}
+          {saving ? 'Saving...' : '💾 Commit Changes'}
         </button>
       </div>
 

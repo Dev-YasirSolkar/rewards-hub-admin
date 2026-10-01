@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
+import { invalidateCache } from '@/lib/cache';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -36,6 +37,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       details: { campaignId: id, updateData },
     });
 
+    invalidateCache('admin_affiliates');
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return serverError(error);
@@ -62,6 +65,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       action: 'delete_affiliate_campaign',
       details: { campaignId: id },
     });
+
+    invalidateCache('admin_affiliates');
 
     return NextResponse.json({ success: true });
   } catch (error) {

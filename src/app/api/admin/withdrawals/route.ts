@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
+import { getCached, setCached, getCachedUserProfile, setCachedUserProfile } from '@/lib/cache';
 
 export async function GET(request: Request) {
   try {
@@ -9,68 +10,95 @@ export async function GET(request: Request) {
     if (!admin) return forbiddenResponse();
 
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    if (!rateLimit(`admin_withdrawals:${ip}`, 60, 60_000)) {
+    if (!(await rateLimit(ip, 'admin_withdrawals', 60, 60))) {
       return NextResponse.json({ success: false, error: 'Rate limit exceeded' }, { status: 429 });
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '100');
+    const status = searchParams.get('status') || 'all';
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    const cacheKey = `admin_withdrawals:${status}:${limit}`;
+    if (!forceRefresh) {
+      const cached = getCached<any>(cacheKey);
+      if (cached) {
+        return NextResponse.json({ success: true, data: cached, withdrawals: cached, cached: true });
+      }
+    }
 
     let snapshot;
     const isFiltered = status && status !== 'all';
 
     try {
       if (isFiltered) {
-        snapshot = await adminDb.collection('withdrawals')
+        snapshot = await adminDb
+          .collection('withdrawals')
           .where('status', '==', status)
           .orderBy('createdAt', 'desc')
           .limit(limit)
           .get();
       } else {
-        snapshot = await adminDb.collection('withdrawals')
+        snapshot = await adminDb
+          .collection('withdrawals')
           .orderBy('createdAt', 'desc')
           .limit(limit)
           .get();
       }
     } catch (indexErr) {
-      // Safe fallback if Firestore composite index is missing or building
       console.warn('Withdrawals index query fallback:', indexErr);
       if (isFiltered) {
-        snapshot = await adminDb.collection('withdrawals')
+        snapshot = await adminDb
+          .collection('withdrawals')
           .where('status', '==', status)
-          .limit(limit * 2)
+          .limit(limit)
           .get();
       } else {
-        snapshot = await adminDb.collection('withdrawals')
-          .limit(limit * 2)
+        snapshot = await adminDb
+          .collection('withdrawals')
+          .limit(limit)
           .get();
       }
     }
 
-    const rawDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const rawDocs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    // Enrich with user profile info for display
+    // Extract unique user IDs
     const userIds = Array.from(new Set(rawDocs.map((w: any) => w.userId).filter(Boolean)));
     const userMap = new Map<string, { firstName?: string; username?: string; telegramId?: number }>();
+    const uncachedIds: string[] = [];
 
-    await Promise.all(
-      userIds.map(async (uId) => {
-        try {
-          const uDoc = await adminDb.collection('users').doc(uId).get();
+    // Check in-memory user cache first (0 Firestore reads for already-known users)
+    for (const uId of userIds) {
+      const cachedProfile = getCachedUserProfile(uId);
+      if (cachedProfile) {
+        userMap.set(uId, cachedProfile);
+      } else {
+        uncachedIds.push(uId);
+      }
+    }
+
+    // Batch fetch only uncached user documents using getAll (cuts reads dramatically)
+    if (uncachedIds.length > 0) {
+      try {
+        const refs = uncachedIds.map((uId) => adminDb.collection('users').doc(uId));
+        const userDocs = await adminDb.getAll(...refs);
+        for (const uDoc of userDocs) {
           if (uDoc.exists) {
             const uData = uDoc.data();
-            userMap.set(uId, {
+            const profile = {
               firstName: uData?.firstName,
               username: uData?.username,
               telegramId: uData?.telegramId,
-            });
+            };
+            userMap.set(uDoc.id, profile);
+            setCachedUserProfile(uDoc.id, profile, 600); // Cache profile for 10 minutes
           }
-        } catch {
-          // ignore lookup errors
         }
-      })
-    );
+      } catch (batchErr) {
+        console.warn('Batch user profile lookup fallback:', batchErr);
+      }
+    }
 
     const withdrawals = rawDocs.map((w: any) => {
       const uInfo = userMap.get(w.userId);
@@ -97,7 +125,10 @@ export async function GET(request: Request) {
     // In-memory sort by createdAt descending
     withdrawals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return NextResponse.json({ success: true, data: withdrawals, withdrawals });
+    // Cache the processed withdrawals list for 30 seconds
+    setCached(cacheKey, withdrawals, 30);
+
+    return NextResponse.json({ success: true, data: withdrawals, withdrawals, cached: false });
   } catch (error) {
     return serverError(error);
   }

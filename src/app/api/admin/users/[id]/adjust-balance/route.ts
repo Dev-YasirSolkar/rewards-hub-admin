@@ -40,6 +40,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       details: { userId: id, amount, reason }
     });
 
+    const { invalidateCache } = await import('@/lib/cache');
+    invalidateCache(`admin_user:${id}`);
+    invalidateCache('admin_users');
+    invalidateCache('admin_dashboard');
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return serverError(error);
