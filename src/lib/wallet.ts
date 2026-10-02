@@ -61,6 +61,8 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
 
     const updateData: Record<string, unknown> = {
       pointsBalance: balanceAfter,
+      coins: balanceAfter,
+      cacheVersion: Date.now(),
       updatedAt: FieldValue.serverTimestamp(),
     };
 
