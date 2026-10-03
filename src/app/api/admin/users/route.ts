@@ -31,7 +31,11 @@ export async function GET(request: Request) {
     let query: any = adminDb.collection('users');
 
     if (status && status !== 'all') {
-      query = query.where('status', '==', status);
+      if (status === 'suspended') {
+        query = query.where('status', '==', 'suspended');
+      } else {
+        query = query.where('status', '==', status);
+      }
     }
 
     let snapshot;
@@ -50,18 +54,28 @@ export async function GET(request: Request) {
         ? new Date(data.createdAt).toISOString()
         : null;
 
+      const coinsBalance = data.coins !== undefined ? Number(data.coins) : Number(data.pointsBalance || data.balance || 0);
+      const lifetime = Math.max(coinsBalance, Number(data.totalEarned || 0), Number(data.lifetimeEarned || 0));
+
       return {
         id: doc.id,
         telegramId: data.telegramId || doc.id,
-        firstName: data.firstName || 'User',
+        firstName: data.firstName || 'Miner',
         lastName: data.lastName || '',
         username: data.username || '',
-        pointsBalance: data.pointsBalance || 0,
-        balance: data.pointsBalance || 0,
-        status: data.status || 'active',
+        pointsBalance: coinsBalance,
+        balance: coinsBalance,
+        coins: coinsBalance,
+        level: Number(data.level || 1),
+        profitPerHour: Number(data.profitPerHour || 0),
+        energy: Number(data.energy || 1000),
+        maxEnergy: Number(data.maxEnergy || 1000),
+        status: data.isBanned ? 'suspended' : (data.status || 'active'),
+        isBanned: Boolean(data.isBanned || data.status === 'suspended'),
+        suspendedUntil: data.suspendedUntil || null,
         role: data.role || 'user',
-        referralCount: data.referralCount || 0,
-        lifetimeEarned: data.lifetimeEarned || 0,
+        referralCount: Number(data.referralsCount || data.referralCount || (data.referrals ? data.referrals.length : 0)),
+        lifetimeEarned: lifetime,
         createdAt,
       };
     });
@@ -70,13 +84,14 @@ export async function GET(request: Request) {
       users = users.filter((u: any) =>
         (u.username && u.username.toLowerCase().includes(search)) ||
         (u.firstName && u.firstName.toLowerCase().includes(search)) ||
+        (u.lastName && u.lastName.toLowerCase().includes(search)) ||
         String(u.telegramId).includes(search) ||
         String(u.id).includes(search)
       );
     }
 
-    // Cache results for 30s
-    setCached(cacheKey, users, 30);
+    // Cache results for 15s
+    setCached(cacheKey, users, 15);
 
     return NextResponse.json({ success: true, data: users, users, cached: false });
   } catch (error) {

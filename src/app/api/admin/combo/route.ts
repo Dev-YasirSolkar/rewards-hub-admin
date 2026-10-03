@@ -3,21 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@/lib/auth';
 import { createAuditLog } from '@/lib/audit';
 import { getCached, setCached, invalidateCache } from '@/lib/cache';
-
-const ALL_CARDS = [
-  { id: 'crypto_bot', name: 'AI Trading Bot', category: 'Tech & AI', icon: '🤖' },
-  { id: 'airdrop_hunter', name: 'Airdrop Hunter', category: 'Tech & AI', icon: '📡' },
-  { id: 'vpn_tunnel', name: 'High-speed Node', category: 'Tech & AI', icon: '⚡' },
-  { id: 'viral_meme', name: 'Viral Meme Army', category: 'Marketing', icon: '🚀' },
-  { id: 'influencer', name: 'Crypto Influencer', category: 'Marketing', icon: '🎙️' },
-  { id: 'telegram_boost', name: 'Telegram Booster', category: 'Marketing', icon: '💎' },
-  { id: 'dao_license', name: 'Global DAO License', category: 'Web3 & Legal', icon: '📜' },
-  { id: 'anti_fraud', name: 'Security Shield', category: 'Web3 & Legal', icon: '🛡️' },
-  { id: 'smart_contract', name: 'Audited Contract', category: 'Web3 & Legal', icon: '🔐' },
-  { id: 'ton_bridge', name: 'TON Network Bridge', category: 'Tech & AI', icon: '🌉' },
-  { id: 'staking_pool', name: 'VIP Liquidity Pool', category: 'Marketing', icon: '🏦' },
-  { id: 'metaverse_land', name: 'Virtual Headquarters', category: 'Web3 & Legal', icon: '🏛️' },
-];
+import { getDynamicMiningCards } from '@/lib/mining-cards-server';
 
 function getTodayString() {
   const d = new Date();
@@ -34,18 +20,33 @@ export async function GET(request: NextRequest) {
       return Response.json({ success: true, data: cached, cached: true });
     }
 
-    const doc = await adminDb.collection('adminSettings').doc('combo').get();
+    const [doc, dynamicCards] = await Promise.all([
+      adminDb.collection('adminSettings').doc('combo').get(),
+      getDynamicMiningCards(),
+    ]);
+
     const data = doc.exists ? doc.data() : {};
     const today = getTodayString();
 
+    const fallbackCards = dynamicCards.slice(0, 3).map((c) => c.id);
     const currentCards = (data?.date === today && Array.isArray(data?.cards))
       ? data.cards
-      : ['crypto_bot', 'viral_meme', 'ton_bridge'];
+      : (data?.cards?.length === 3 ? data.cards : fallbackCards);
+
+    const mappedAllCards = dynamicCards.map((c) => ({
+      id: c.id,
+      name: c.name,
+      category: c.category,
+      icon: c.icon,
+      emoji: c.emoji,
+      baseProfit: c.baseProfit,
+      requiredLevel: c.requiredLevel,
+    }));
 
     const result = {
       cards: currentCards,
-      allCards: ALL_CARDS,
-      rewardAmount: Number(data?.rewardAmount || 1000),
+      allCards: mappedAllCards,
+      rewardAmount: Number(data?.rewardAmount || 1000000),
       date: data?.date || today,
       updatedAt: data?.updatedAt || null,
     };
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (!admin) return forbiddenResponse();
 
     const body = await request.json();
-    const { cards = [], rewardAmount = 1000 } = body;
+    const { cards = [], rewardAmount = 1000000 } = body;
 
     if (!Array.isArray(cards) || cards.length !== 3) {
       return badRequest('Exactly 3 card IDs must be selected for daily combo');

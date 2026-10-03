@@ -56,7 +56,7 @@ export default function AdminDashboard() {
       <div>
         <div className="admin-card" style={{ borderColor: '#ef4444' }}>
           <p style={{ color: '#ef4444', margin: '0 0 12px', fontWeight: 700 }}>{error}</p>
-          <button className="btn-3d-danger" onClick={() => fetchStats()}>
+          <button className="admin-button" onClick={() => fetchStats(true)}>
             Retry Loading
           </button>
         </div>
@@ -79,32 +79,32 @@ export default function AdminDashboard() {
     typeof stats?.paidWithdrawals === 'object' ? stats.paidWithdrawals?.sum ?? 0 : 0;
 
   const statItems = [
-    { label: 'Total Registered Members', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
-    { label: 'Active 24h Users', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
-    { label: 'New Signups Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
+    { label: 'Total Registered Miners', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
+    { label: 'Active 24h Miners', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
+    { label: 'New Miners Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
     {
-      label: 'Points Distributed',
-      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} PTS`,
-      icon: '💰',
+      label: 'Doracakes In Circulation',
+      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} 🥞`,
+      icon: '🥞',
       color: '#F59E0B',
       aura: 'rgba(245, 158, 11, 0.25)'
     },
     {
       label: 'Pending Payouts',
-      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} PTS)`,
+      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} 🥞)`,
       icon: '⏳',
       color: '#F87171',
       aura: 'rgba(248, 113, 113, 0.25)'
     },
     {
       label: 'Settled Payouts',
-      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} PTS)`,
+      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} 🥞)`,
       icon: '✅',
       color: '#10B981',
       aura: 'rgba(16, 185, 129, 0.25)'
     },
-    { label: 'Active Missions', value: (stats?.activeTasks ?? 0).toLocaleString(), icon: '📋', color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
-    { label: 'Task Claims Today', value: (stats?.taskCompletionsToday ?? 0).toLocaleString(), icon: '🎯', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
+    { label: 'Active Quests', value: (stats?.activeTasks ?? 0).toLocaleString(), icon: '📋', color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
+    { label: 'Quest Claims Today', value: (stats?.taskCompletionsToday ?? 0).toLocaleString(), icon: '🎯', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
   ];
 
   return (
@@ -130,19 +130,19 @@ export default function AdminDashboard() {
               boxShadow: '0 0 8px #10b981'
             }} />
             <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              Live Authoritative Node
+              Live Doraemon Matrix Node
             </span>
           </div>
           <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '0 0 4px', color: '#f8fafc', letterSpacing: '-0.4px' }}>
-            Operations & Telemetry Control
+            Rewards Hub Operations &amp; Control
           </h2>
           <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
-            Real-time telemetry, user acquisition, task engagement, and financial payouts.
+            Real-time telemetry, 7-character tiers, passive mining economy, and payout auditing.
           </p>
         </div>
 
         <button
-          className="btn-3d-blue"
+          className="admin-button"
           onClick={() => fetchStats(true)}
           style={{ padding: '8px 16px', fontSize: '13px' }}
         >
@@ -150,10 +150,10 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* ── 3D LUMINOUS KPI GRID ────────────────────────────────────────────── */}
+      {/* ── LUMINOUS KPI GRID ────────────────────────────────────────────── */}
       <div className="admin-grid">
         {statItems.map((item, i) => (
-          <div key={i} className="stat-card" style={{ padding: '16px 18px' }}>
+          <div key={i} className="stat-card" style={{ padding: '16px 18px', position: 'relative', overflow: 'hidden' }}>
             {/* Radial Aura Backlight */}
             <div style={{
               position: 'absolute',
@@ -177,56 +177,32 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* ── 3D QUICK ACTION CONTROL HUB ─────────────────────────────────────── */}
+      {/* ── QUICK ACTION CONTROL HUB ─────────────────────────────────────── */}
       <div className="admin-card">
         <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 16px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>⚡ Admin Operations & Quick Control</span>
+          <span>⚡ Admin Operations &amp; Fast Navigation</span>
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
           <Link
-            href="/dashboard/withdrawals"
+            href="/dashboard/mining-cards"
             style={{
               padding: '16px',
               borderRadius: '14px',
               background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
-              border: '1px solid rgba(251, 191, 36, 0.25)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FDE047' }}>💳 Review Payouts</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Approve UPI & Bank transfers</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b' }}>⛏️ Mining Cards</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Add &amp; auto-tune gadget cards</div>
             </div>
-            <span style={{ fontSize: '18px', color: '#FDE047' }}>→</span>
-          </Link>
-
-          <Link
-            href="/dashboard/tasks"
-            style={{
-              padding: '16px',
-              borderRadius: '14px',
-              background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              textDecoration: 'none',
-              color: '#f8fafc',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-              transition: 'transform 0.15s ease, border-color 0.15s ease',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>📋 Create Mission</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Channels, websites & social</div>
-            </div>
-            <span style={{ fontSize: '18px', color: '#38bdf8' }}>→</span>
+            <span style={{ fontSize: '18px', color: '#f59e0b' }}>→</span>
           </Link>
 
           <Link
@@ -235,44 +211,64 @@ export default function AdminDashboard() {
               padding: '16px',
               borderRadius: '14px',
               background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f87171' }}>🎯 Daily Combo & Cipher</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Set daily mystery words & cards</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f87171' }}>🎯 Cipher &amp; Combo</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Set daily mystery codes &amp; cards</div>
             </div>
             <span style={{ fontSize: '18px', color: '#f87171' }}>→</span>
           </Link>
 
           <Link
-            href="/dashboard/settings"
+            href="/dashboard/users"
             style={{
               padding: '16px',
               borderRadius: '14px',
               background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
-              border: '1px solid rgba(16, 185, 129, 0.25)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
               textDecoration: 'none',
               color: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
-              transition: 'transform 0.15s ease, border-color 0.15s ease',
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#34d399' }}>⚙️ Ad Network & Config</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Tune rewards & rate limits</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>👥 Miners &amp; Tiers</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Character tiers, Doracakes &amp; bans</div>
             </div>
-            <span style={{ fontSize: '18px', color: '#34d399' }}>→</span>
+            <span style={{ fontSize: '18px', color: '#38bdf8' }}>→</span>
+          </Link>
+
+          <Link
+            href="/dashboard/withdrawals"
+            style={{
+              padding: '16px',
+              borderRadius: '14px',
+              background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
+              border: '1px solid rgba(251, 191, 36, 0.3)',
+              textDecoration: 'none',
+              color: '#f8fafc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FDE047' }}>💳 Review Payouts</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Approve TON, USDT &amp; UPI payouts</div>
+            </div>
+            <span style={{ fontSize: '18px', color: '#FDE047' }}>→</span>
           </Link>
         </div>
       </div>

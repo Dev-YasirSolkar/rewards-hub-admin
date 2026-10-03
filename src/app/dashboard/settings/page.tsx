@@ -17,22 +17,26 @@ interface AdminSettings {
   adReward?: number;
   adDailyLimit?: number;
   adCooldownSeconds?: number;
+  spinDailyLimit?: number;
+  maintenanceMode?: boolean;
 }
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AdminSettings>({
-    dailyCheckinRewards: [10, 20, 30, 40, 50, 75, 100],
+    dailyCheckinRewards: [500, 1000, 2500, 5000, 15000, 25000, 100000],
     referralEnabled: true,
-    referralReward: 100,
+    referralReward: 5000,
     withdrawalEnabled: true,
-    withdrawalMinimum: 500,
-    withdrawalMaximum: 50000,
+    withdrawalMinimum: 100000,
+    withdrawalMaximum: 50000000,
     withdrawalCooldownHours: 24,
     adEnabled: true,
     adProvider: 'monetag',
-    adReward: 15,
+    adReward: 1000,
     adDailyLimit: 15,
     adCooldownSeconds: 30,
+    spinDailyLimit: 5,
+    maintenanceMode: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -45,25 +49,27 @@ export default function SettingsPage() {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const res = await adminFetch('/api/admin/settings');
+      const res = await adminFetch('/api/admin/settings?refresh=true');
       if (res.success && res.data) {
         const d = res.data;
         setSettings({
           dailyCheckinRewards: Array.isArray(d.dailyCheckinRewards) && d.dailyCheckinRewards.length === 7
             ? d.dailyCheckinRewards
-            : [10, 20, 30, 40, 50, 75, 100],
+            : [500, 1000, 2500, 5000, 15000, 25000, 100000],
           referralEnabled: d.referralEnabled !== false,
-          referralReward: Number(d.referralReward ?? 100),
+          referralReward: Number(d.referralReward ?? 5000),
           maxReferralReward: d.maxReferralReward ? Number(d.maxReferralReward) : undefined,
           withdrawalEnabled: d.withdrawalEnabled !== false,
-          withdrawalMinimum: Number(d.withdrawalMinimum ?? d.minWithdrawal ?? 500),
-          withdrawalMaximum: d.withdrawalMaximum ? Number(d.withdrawalMaximum) : 50000,
+          withdrawalMinimum: Number(d.withdrawalMinimum ?? d.minWithdrawal ?? 100000),
+          withdrawalMaximum: d.withdrawalMaximum ? Number(d.withdrawalMaximum) : 50000000,
           withdrawalCooldownHours: d.withdrawalCooldownHours ? Number(d.withdrawalCooldownHours) : 24,
           adEnabled: d.adEnabled !== false,
           adProvider: d.adProvider || 'monetag',
-          adReward: Number(d.adReward ?? 15),
+          adReward: Number(d.adReward ?? 1000),
           adDailyLimit: Number(d.adDailyLimit ?? 15),
           adCooldownSeconds: Number(d.adCooldownSeconds ?? 30),
+          spinDailyLimit: Number(d.spinDailyLimit ?? 5),
+          maintenanceMode: Boolean(d.maintenanceMode),
         });
       }
     } catch (e) {
@@ -88,13 +94,15 @@ export default function SettingsPage() {
         referralReward: Number(settings.referralReward),
         withdrawalEnabled: Boolean(settings.withdrawalEnabled),
         withdrawalMinimum: Number(settings.withdrawalMinimum),
-        withdrawalMaximum: Number(settings.withdrawalMaximum || 50000),
+        withdrawalMaximum: Number(settings.withdrawalMaximum || 50000000),
         withdrawalCooldownHours: Number(settings.withdrawalCooldownHours || 24),
         adEnabled: Boolean(settings.adEnabled),
         adProvider: String(settings.adProvider || 'monetag'),
-        adReward: Number(settings.adReward || 15),
+        adReward: Number(settings.adReward || 1000),
         adDailyLimit: Number(settings.adDailyLimit || 15),
         adCooldownSeconds: Number(settings.adCooldownSeconds || 30),
+        spinDailyLimit: Number(settings.spinDailyLimit || 5),
+        maintenanceMode: Boolean(settings.maintenanceMode),
       };
 
       const res = await adminFetch('/api/admin/settings', {
@@ -103,7 +111,7 @@ export default function SettingsPage() {
       });
 
       if (res.success) {
-        setSaveMessage('✓ All settings saved successfully! Ad settings and User App updated in real-time.');
+        setSaveMessage('✓ All settings saved successfully! Propagated to User App in real-time.');
         fetchSettings();
       } else {
         alert(res.error || 'Failed to save settings');
@@ -127,23 +135,23 @@ export default function SettingsPage() {
   }
 
   return (
-    <div>
+    <div style={{ paddingBottom: '3rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>⚙️</span> Platform Economy & System Configuration
+            <span>⚙️</span> Platform Economy &amp; Game Configuration
           </h2>
           <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>
-            Modify reward amounts, ads configuration, referral incentives, and withdrawal rules. Changes propagate in real-time.
+            Control Doracakes daily check-in rewards, Monetag ads, lucky spin caps, referral rewards, and withdrawal thresholds.
           </p>
         </div>
         <button
-          className="btn-3d-gold"
+          className="admin-button admin-button-primary"
           onClick={saveSettings}
           disabled={saving}
-          style={{ padding: '10px 22px', fontSize: '13px' }}
+          style={{ padding: '10px 22px', fontSize: '13px', fontWeight: 800 }}
         >
-          {saving ? 'Saving...' : '💾 Commit Changes'}
+          {saving ? 'Saving...' : '💾 Save All Changes'}
         </button>
       </div>
 
@@ -154,7 +162,7 @@ export default function SettingsPage() {
           borderRadius: '8px',
           padding: '12px 16px',
           color: '#3fb950',
-          fontWeight: 600,
+          fontWeight: 700,
           marginBottom: '20px',
         }}>
           {saveMessage}
@@ -163,15 +171,17 @@ export default function SettingsPage() {
 
       {/* 1. Daily Check-in Streak Rewards */}
       <div className="admin-card" style={{ marginBottom: '20px' }}>
-        <h3 className="text-xl mb-2 font-semibold">📅 7-Day Daily Check-in Rewards</h3>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 6px', color: '#f8fafc' }}>
+          📅 7-Day Streak Check-in Rewards (Doracakes 🥞)
+        </h3>
         <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 16px' }}>
-          Configure point values granted to users for each consecutive day of check-in:
+          Configure Doracakes granted to players for each consecutive day of check-in:
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
           {settings.dailyCheckinRewards.map((reward, i) => (
-            <div key={i} style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#58a6ff', display: 'block', marginBottom: '6px' }}>
+            <div key={i} style={{ background: '#090d16', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+              <label style={{ fontSize: '12px', fontWeight: 800, color: '#f59e0b', display: 'block', marginBottom: '6px' }}>
                 Day {i + 1}
               </label>
               <input
@@ -179,22 +189,25 @@ export default function SettingsPage() {
                 className="admin-input"
                 value={reward}
                 onChange={(e) => handleRewardChange(i, Number(e.target.value))}
-                style={{ textAlign: 'center', fontWeight: 700, margin: 0 }}
+                style={{ textAlign: 'center', fontWeight: 800, margin: 0 }}
                 min="0"
+                step="500"
               />
-              <span style={{ fontSize: '10px', color: '#8b949e', marginTop: '4px', display: 'block' }}>pts</span>
+              <span style={{ fontSize: '10px', color: '#8b949e', marginTop: '4px', display: 'block' }}>🥞 Doracakes</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 2. In-App Ads Configuration */}
+      {/* 2. In-App Monetag Ads Configuration */}
       <div className="admin-card" style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
-            <h3 className="text-xl font-semibold" style={{ margin: 0 }}>📺 In-App Ads Configuration</h3>
-            <p style={{ color: '#8b949e', fontSize: '13px', margin: '2px 0 0' }}>
-              Control rewarded video ads, rewards per ad, daily caps, and cooldown delays.
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 4px', color: '#f8fafc' }}>
+              📺 Monetag Ads &amp; Rewarded Video
+            </h3>
+            <p style={{ color: '#8b949e', fontSize: '13px', margin: 0 }}>
+              Configure video ad rewards, daily ad limits, and cooldown delays.
             </p>
           </div>
           <span style={{ background: settings.adEnabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: settings.adEnabled ? '#10b981' : '#ef4444', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 700 }}>
@@ -204,32 +217,33 @@ export default function SettingsPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
           <div>
-            <label className="flex items-center gap-2 mb-2" style={{ cursor: 'pointer' }}>
+            <label className="admin-label" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type="checkbox"
                 checked={settings.adEnabled}
                 onChange={(e) => setSettings({ ...settings, adEnabled: e.target.checked })}
               />
-              <span style={{ fontWeight: 600 }}>Enable Video & Popup Ads in User App</span>
+              <span>Enable Monetag Ads in User App</span>
             </label>
-            <p style={{ color: '#8b949e', fontSize: '11px', margin: 0 }}>
-              When enabled, users can watch Rewarded Interstitial and Popup ads to earn points.
+            <p style={{ color: '#8b949e', fontSize: '11px', margin: '4px 0 0 20px' }}>
+              Users can watch Rewarded Interstitials to earn bonus Doracakes and lucky spins.
             </p>
           </div>
 
           <div>
-            <label className="block mb-1 text-sm text-gray-400">Reward Per Ad (PTS)</label>
+            <label className="admin-label">Reward Per Video Ad (Doracakes)</label>
             <input
               type="number"
               className="admin-input"
-              value={settings.adReward ?? 15}
+              value={settings.adReward ?? 1000}
               onChange={(e) => setSettings({ ...settings, adReward: Number(e.target.value) })}
-              min="1"
+              min="100"
+              step="500"
             />
           </div>
 
           <div>
-            <label className="block mb-1 text-sm text-gray-400">Daily Ad Limit (Per User)</label>
+            <label className="admin-label">Daily Video Ad Limit (Per Miner)</label>
             <input
               type="number"
               className="admin-input"
@@ -240,7 +254,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm text-gray-400">Cooldown Between Ads (Seconds)</label>
+            <label className="admin-label">Cooldown Between Ads (Seconds)</label>
             <input
               type="number"
               className="admin-input"
@@ -252,93 +266,103 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="admin-grid">
-        {/* 3. Referral Settings */}
-        <div className="admin-card">
-          <h3 className="text-xl mb-4 font-semibold">👥 Referral Program</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+        {/* 3. Referral Program & Spin Wheel */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 12px', color: '#f8fafc' }}>
+            👥 Referrals &amp; Lucky Spin
+          </h3>
           
-          <div className="mb-4">
-            <label className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
+          <div style={{ marginBottom: '14px' }}>
+            <label className="admin-label" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type="checkbox"
                 checked={settings.referralEnabled}
                 onChange={(e) => setSettings({ ...settings, referralEnabled: e.target.checked })}
               />
-              <span style={{ fontWeight: 600 }}>Enable Referral Program</span>
+              <span>Enable Referral Invites</span>
             </label>
           </div>
 
-          <div className="mb-4">
-            <label className="block mb-1 text-sm text-gray-400">Reward Per Referral (Points)</label>
+          <div className="admin-form-group">
+            <label className="admin-label">Reward Per Direct Referral (Doracakes 🥞)</label>
             <input
               type="number"
               className="admin-input"
               value={settings.referralReward}
               onChange={(e) => setSettings({ ...settings, referralReward: Number(e.target.value) })}
               min="0"
+              step="500"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Points awarded to the inviter when a new friend joins using their link.
+              Awarded to the inviter when a new friend joins via their referral link.
+            </p>
+          </div>
+
+          <div className="admin-form-group">
+            <label className="admin-label">Lucky Spin Daily Ad Spins Limit</label>
+            <input
+              type="number"
+              className="admin-input"
+              value={settings.spinDailyLimit ?? 5}
+              onChange={(e) => setSettings({ ...settings, spinDailyLimit: Number(e.target.value) })}
+              min="1"
+              max="50"
+            />
+            <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
+              Max extra spins a player can unlock each day by watching ads (default: 5).
             </p>
           </div>
         </div>
 
-        {/* 4. Withdrawal Settings */}
-        <div className="admin-card">
-          <h3 className="text-xl mb-4 font-semibold">💸 Withdrawal Rules</h3>
+        {/* 4. Withdrawal Rules */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 12px', color: '#f8fafc' }}>
+            💸 Withdrawal &amp; Payout Rules
+          </h3>
           
-          <div className="mb-4">
-            <label className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
+          <div style={{ marginBottom: '14px' }}>
+            <label className="admin-label" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type="checkbox"
                 checked={settings.withdrawalEnabled}
                 onChange={(e) => setSettings({ ...settings, withdrawalEnabled: e.target.checked })}
               />
-              <span style={{ fontWeight: 600 }}>Allow User Withdrawals</span>
+              <span>Allow Miner Withdrawals</span>
             </label>
             <p style={{ color: '#8b949e', fontSize: '11px', margin: '4px 0 0 20px' }}>
-              Uncheck to pause all withdrawal requests in the app.
+              Uncheck to pause all withdrawal requests in the user app.
             </p>
           </div>
 
-          <div className="mb-4">
-            <label className="block mb-1 text-sm text-gray-400">Minimum Withdrawal (Points)</label>
+          <div className="admin-form-group">
+            <label className="admin-label">Minimum Withdrawal Threshold (Doracakes)</label>
             <input
               type="number"
               className="admin-input"
               value={settings.withdrawalMinimum}
               onChange={(e) => setSettings({ ...settings, withdrawalMinimum: Number(e.target.value) })}
-              min="1"
+              min="1000"
+              step="10000"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Users cannot request less than this amount.
+              Users cannot request less than this balance.
             </p>
           </div>
 
-          <div className="mb-4">
-            <label className="block mb-1 text-sm text-gray-400">Maximum Withdrawal (Points)</label>
+          <div className="admin-form-group">
+            <label className="admin-label">Maximum Single Withdrawal (Doracakes)</label>
             <input
               type="number"
               className="admin-input"
-              value={settings.withdrawalMaximum || 50000}
+              value={settings.withdrawalMaximum || 50000000}
               onChange={(e) => setSettings({ ...settings, withdrawalMaximum: Number(e.target.value) })}
-              min="100"
+              min="10000"
+              step="1000000"
             />
           </div>
         </div>
       </div>
-
-      <div style={{ marginTop: '10px' }}>
-        <button
-          className="admin-button"
-          onClick={saveSettings}
-          disabled={saving}
-          style={{ padding: '12px 24px', fontSize: '15px' }}
-        >
-          {saving ? 'Saving Changes...' : 'Save All Settings'}
-        </button>
-      </div>
     </div>
   );
 }
-

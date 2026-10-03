@@ -65,20 +65,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const rawUserData = userDoc.data()!;
     const userId = userDoc.id;
 
-    // Safe transactions fetch with index-missing fallback
+    // Safe transactions fetch
     let transactions: any[] = [];
     try {
       const txSnap = await adminDb.collection('transactions')
         .where('userId', '==', userId)
         .orderBy('createdAt', 'desc')
-        .limit(20)
+        .limit(25)
         .get();
       transactions = txSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
     } catch {
       try {
         const txSnap = await adminDb.collection('transactions')
           .where('userId', '==', userId)
-          .limit(20)
+          .limit(25)
           .get();
         transactions = txSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
         transactions.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
@@ -90,7 +90,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     // Safe referrals fetch
     let referrals: any[] = [];
     try {
-      const refSnap = await adminDb.collection('users').where('referredBy', '==', userId).limit(20).get();
+      const refSnap = await adminDb.collection('users').where('referredBy', '==', userId).limit(25).get();
       referrals = refSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
     } catch (err) {
       console.warn('Failed to load referrals for user', userId, err);
@@ -99,24 +99,43 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     // Safe withdrawals fetch
     let withdrawals: any[] = [];
     try {
-      const wdSnap = await adminDb.collection('withdrawals').where('userId', '==', userId).limit(20).get();
+      const wdSnap = await adminDb.collection('withdrawals').where('userId', '==', userId).limit(25).get();
       withdrawals = wdSnap.docs.map(d => ({ id: d.id, ...formatFirestoreData(d.data()) }));
       withdrawals.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     } catch (err) {
       console.warn('Failed to load withdrawals for user', userId, err);
     }
 
+    const coinsBalance = rawUserData.coins !== undefined ? Number(rawUserData.coins) : Number(rawUserData.pointsBalance || rawUserData.balance || 0);
+    const lifetimeEarned = Math.max(coinsBalance, Number(rawUserData.totalEarned || 0), Number(rawUserData.lifetimeEarned || 0));
+
     const formattedUser = {
       id: userId,
       ...formatFirestoreData(rawUserData),
       telegramId: rawUserData.telegramId || userId,
-      pointsBalance: rawUserData.pointsBalance ?? rawUserData.balance ?? 0,
-      balance: rawUserData.pointsBalance ?? rawUserData.balance ?? 0,
-      lifetimeEarned: rawUserData.lifetimeEarned ?? 0,
-      lifetimeWithdrawn: rawUserData.lifetimeWithdrawn ?? 0,
-      defaultPayoutMethod: rawUserData.defaultPayoutMethod || null,
+      pointsBalance: coinsBalance,
+      balance: coinsBalance,
+      coins: coinsBalance,
+      level: Number(rawUserData.level || 1),
+      profitPerHour: Number(rawUserData.profitPerHour || 0),
+      energy: Number(rawUserData.energy || 1000),
+      maxEnergy: Number(rawUserData.maxEnergy || 1000),
+      lifetimeEarned,
+      lifetimeWithdrawn: Number(rawUserData.lifetimeWithdrawn || 0),
+      miningCards: rawUserData.miningCards || rawUserData.cards || {},
+      payoutMethod: rawUserData.payoutMethod || rawUserData.defaultPayoutMethod || null,
+      walletAddress: rawUserData.walletAddress || null,
       savedUpiId: rawUserData.savedUpiId || null,
       savedBankDetails: rawUserData.savedBankDetails || null,
+      isBanned: Boolean(rawUserData.isBanned || rawUserData.status === 'suspended'),
+      status: rawUserData.isBanned ? 'suspended' : (rawUserData.status || 'active'),
+      checkinStreak: Number(rawUserData.checkinStreak || 0),
+      lastCheckinDate: rawUserData.lastCheckinDate || null,
+      spinStats: rawUserData.spinStats || null,
+      comboStats: rawUserData.comboStats || null,
+      cipherStats: rawUserData.cipherStats || null,
+      fraudScore: Number(rawUserData.fraudScore || 0),
+      fraudReason: rawUserData.fraudReason || null,
     };
 
     const responseData = {
@@ -126,7 +145,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       withdrawals,
     };
 
-    setCached(cacheKey, responseData, 20);
+    setCached(cacheKey, responseData, 15);
 
     return NextResponse.json({
       success: true,
@@ -157,7 +176,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return badRequest('Invalid status');
     }
 
-    // Find actual doc reference
     let userRef = adminDb.collection('users').doc(cleanId);
     let userDoc = await userRef.get();
 
@@ -176,52 +194,57 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
+    const isBanning = status === 'suspended';
     let suspendedUntil: string | null = null;
-    if (status === 'suspended') {
-      const now = Date.now();
-      if (duration === '1h') {
-        suspendedUntil = new Date(now + 1 * 3600_000).toISOString();
-      } else if (duration === '24h' || duration === '1d') {
-        suspendedUntil = new Date(now + 24 * 3600_000).toISOString();
-      } else if (duration === '3d') {
-        suspendedUntil = new Date(now + 3 * 24 * 3600_000).toISOString();
-      } else if (duration === '7d' || duration === '1w') {
-        suspendedUntil = new Date(now + 7 * 24 * 3600_000).toISOString();
-      } else if (duration === '30d' || duration === '1m') {
-        suspendedUntil = new Date(now + 30 * 24 * 3600_000).toISOString();
+
+    if (isBanning) {
+      if (duration === '24h') {
+        suspendedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      } else if (duration === '48h') {
+        suspendedUntil = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      } else if (duration === '7d') {
+        suspendedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (duration === '30d') {
+        suspendedUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       } else if (duration === 'custom' && customHours) {
-        suspendedUntil = new Date(now + Number(customHours) * 3600_000).toISOString();
-      } else {
-        suspendedUntil = null;
+        const hrs = parseInt(customHours);
+        if (!isNaN(hrs) && hrs > 0) {
+          suspendedUntil = new Date(Date.now() + hrs * 60 * 60 * 1000).toISOString();
+        }
       }
     }
 
-    await userRef.update({
+    const updatePayload: Record<string, any> = {
       status,
-      suspendedUntil: status === 'suspended' ? suspendedUntil : null,
-      suspendReason: status === 'suspended' ? (reason?.trim() || null) : null,
-      suspendedAt: status === 'suspended' ? new Date() : null,
+      isBanned: isBanning,
+      suspendedUntil: isBanning ? suspendedUntil : null,
+      suspendReason: isBanning ? (reason || 'Suspended by admin') : null,
+      fraudReason: isBanning ? (reason || 'Suspended by admin') : null,
       updatedAt: new Date(),
-    });
+    };
+
+    await userRef.update(updatePayload);
 
     await createAuditLog({
       performedBy: admin.id,
-      action: `update_user_status`,
-      details: { 
-        userId: userDoc.id, 
-        newStatus: status, 
-        duration: status === 'suspended' ? duration : undefined,
-        suspendedUntil,
-        reason,
-      }
+      action: isBanning ? 'BAN_USER' : 'UNBAN_USER',
+      targetId: userRef.id,
+      targetType: 'user',
+      details: { status, duration, reason, suspendedUntil },
     });
 
     const { invalidateCache } = await import('@/lib/cache');
+    invalidateCache(`admin_user:${cleanId}`);
+    invalidateCache(`admin_user:${userRef.id}`);
     invalidateCache('admin_users');
     invalidateCache('admin_dashboard');
 
-    return NextResponse.json({ success: true, suspendedUntil, status });
+    return NextResponse.json({
+      success: true,
+      data: { id: userRef.id, status, isBanned: isBanning, suspendedUntil },
+    });
   } catch (error) {
+    console.error('Error updating user status:', error);
     return serverError(error);
   }
 }

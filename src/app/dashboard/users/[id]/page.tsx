@@ -4,6 +4,16 @@ import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
 
+const CHARACTER_TIERS: Record<number, { name: string; avatar: string; color: string; tagline: string }> = {
+  1: { name: 'Doracake', avatar: '🥞', color: '#f59e0b', tagline: 'Pure Doracake Fuel' },
+  2: { name: 'Nobita', avatar: '👦', color: '#eab308', tagline: 'Novice Miner' },
+  3: { name: 'Shizuka', avatar: '🌸', color: '#ec4899', tagline: 'Melody Miner' },
+  4: { name: 'Suneo', avatar: '💎', color: '#38bdf8', tagline: 'Elite Gadgeteer' },
+  5: { name: 'Gian', avatar: '🦁', color: '#f97316', tagline: 'Power Miner' },
+  6: { name: 'Dorami', avatar: '🎀', color: '#facc15', tagline: 'Time Patrol Specialist' },
+  7: { name: 'Doraemon', avatar: '👑', color: '#3b82f6', tagline: '22nd Century Master' },
+};
+
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
@@ -27,9 +37,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [suspendReason, setSuspendReason] = useState('');
   const [submittingSuspend, setSubmittingSuspend] = useState(false);
 
-  // Clear cache state
-  const [clearingCache, setClearingCache] = useState(false);
-
   useEffect(() => {
     fetchUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -39,7 +46,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     setLoading(true);
     setErrorMsg(null);
     try {
-      const res = await adminFetch(`/api/admin/users/${encodeURIComponent(id)}`);
+      const res = await adminFetch(`/api/admin/users/${encodeURIComponent(id)}?refresh=true`);
       if (res.success && res.data) {
         const u = res.data.user || res.data;
         setUser(u);
@@ -58,14 +65,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleUnsuspend = async () => {
-    if (!confirm('Reactivate this user account now?')) return;
+    if (!confirm('Reactivate this miner account now?')) return;
     try {
       const res = await adminFetch(`/api/admin/users/${encodeURIComponent(id)}`, {
         method: 'PATCH',
         body: JSON.stringify({ status: 'active' }),
       });
       if (res.success) {
-        alert('User has been reactivated successfully');
+        alert('Miner account reactivated successfully!');
         fetchUser();
       } else {
         alert(res.error || 'Failed to reactivate user');
@@ -102,22 +109,19 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       } else {
         alert(res.error || 'Failed to suspend user');
       }
-    } catch {
-      alert('Network error while suspending user');
+    } catch (e) {
+      console.error(e);
+      alert('Error suspending user');
     } finally {
       setSubmittingSuspend(false);
     }
   };
 
-  const handleAdjust = async (e: React.FormEvent) => {
+  const handleAdjustBalanceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amountNum = parseInt(adjustAmount, 10);
-    if (!amountNum) {
-      alert('Please enter a valid positive or negative amount');
-      return;
-    }
-    if (!adjustReason.trim()) {
-      alert('Please enter a reason for balance adjustment');
+    const amt = parseInt(adjustAmount, 10);
+    if (isNaN(amt) || amt === 0) {
+      alert('Enter a valid non-zero amount of Doracakes');
       return;
     }
 
@@ -126,13 +130,13 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       const res = await adminFetch(`/api/admin/users/${encodeURIComponent(id)}/adjust-balance`, {
         method: 'POST',
         body: JSON.stringify({
-          amount: amountNum,
-          reason: adjustReason.trim(),
+          amount: amt,
+          reason: adjustReason.trim() || 'Manual adjustment by admin',
         }),
       });
 
       if (res.success) {
-        alert(`Successfully adjusted balance by ${amountNum > 0 ? '+' : ''}${amountNum} pts`);
+        alert(`Doracakes balance adjusted by ${amt > 0 ? '+' : ''}${amt.toLocaleString()} 🥞!`);
         setShowAdjustModal(false);
         setAdjustAmount('');
         setAdjustReason('');
@@ -140,397 +144,317 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       } else {
         alert(res.error || 'Failed to adjust balance');
       }
-    } catch {
-      alert('Network error adjusting balance');
+    } catch (e) {
+      console.error(e);
+      alert('Error adjusting balance');
     } finally {
       setSubmittingAdjust(false);
     }
   };
 
-  const handleClearCache = async () => {
-    if (!confirm('Clear and invalidate all local caches for this user? When the user next opens the app, all local storage buffers and cached states will be purged.')) return;
-    setClearingCache(true);
+  const formatDate = (val: any) => {
+    if (!val) return '—';
     try {
-      const res = await adminFetch(`/api/admin/users/${encodeURIComponent(id)}/clear-cache`, {
-        method: 'POST',
-      });
-      if (res.success) {
-        alert('User local caches invalidated successfully! The client app will purge local storage buffer.');
-        fetchUser();
-      } else {
-        alert(res.error || 'Failed to clear user cache');
-      }
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? '—' : d.toLocaleString();
     } catch {
-      alert('Network error clearing user cache');
-    } finally {
-      setClearingCache(false);
+      return '—';
     }
   };
 
   if (loading) {
     return (
       <div style={{ padding: '20px 0' }}>
-        <div className="skeleton-box" style={{ height: '120px', marginBottom: '16px' }} />
-        <div className="skeleton-box" style={{ height: '220px', marginBottom: '16px' }} />
-        <div className="skeleton-box" style={{ height: '280px' }} />
+        <div className="skeleton-box" style={{ height: '40px', width: '200px', marginBottom: '16px' }} />
+        <div className="skeleton-box" style={{ height: '140px', marginBottom: '20px' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="skeleton-box" style={{ height: '260px' }} />
+          <div className="skeleton-box" style={{ height: '260px' }} />
+        </div>
       </div>
     );
   }
 
   if (errorMsg || !user) {
     return (
-      <div style={{ padding: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <Link href="/dashboard/users" style={{ color: '#58a6ff', textDecoration: 'none', fontSize: '13px' }}>
-            ← Back to Users
-          </Link>
-        </div>
-        <div className="admin-card" style={{ border: '1px solid #da363350', padding: '24px', textAlign: 'center' }}>
-          <h3 style={{ color: '#f85149', margin: '0 0 8px' }}>User Not Found</h3>
-          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 16px' }}>
-            {errorMsg || `Could not find any user with ID "${id}".`}
-          </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button onClick={fetchUser} className="admin-button" style={{ padding: '8px 18px', fontSize: '13px' }}>
-              Retry
-            </button>
-            <Link href="/dashboard/users" className="admin-button" style={{ padding: '8px 18px', fontSize: '13px', textDecoration: 'none', background: '#21262d' }}>
-              View All Users
-            </Link>
-          </div>
-        </div>
+      <div className="admin-card" style={{ textAlign: 'center', padding: '3rem' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚠️</div>
+        <h2 style={{ color: '#f85149', margin: '0 0 0.5rem' }}>Error Loading Miner Profile</h2>
+        <p style={{ color: '#8b949e', marginBottom: '1.5rem' }}>{errorMsg || 'User document not found'}</p>
+        <Link href="/dashboard/users" className="admin-button">
+          ← Back to User List
+        </Link>
       </div>
     );
   }
 
-  const isSuspended = user.status === 'suspended';
+  const isSuspended = user.status === 'suspended' || user.isBanned;
   const hasExpiry = isSuspended && user.suspendedUntil;
-  const expiryTime = hasExpiry ? new Date(user.suspendedUntil).getTime() : 0;
-  const isExpired = hasExpiry && expiryTime <= Date.now();
-  const remainingHours = hasExpiry ? Math.max(1, Math.ceil((expiryTime - Date.now()) / 3600_000)) : 0;
+  const isExpired = hasExpiry && new Date(user.suspendedUntil).getTime() <= Date.now();
+  const tier = CHARACTER_TIERS[user.level || 1] || CHARACTER_TIERS[1];
+  const miningCardsObj = (typeof user.miningCards === 'object' && user.miningCards) ? user.miningCards : {};
+  const unlockedCards = Object.entries(miningCardsObj).filter(([, lvl]) => Number(lvl) > 0);
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-        <Link href="/dashboard/users" style={{ color: '#58a6ff', textDecoration: 'none', fontSize: '13px' }}>
-          ← Back to Users
-        </Link>
-        <h2 style={{ fontSize: '22px', fontWeight: 800, margin: 0, color: '#f0f6fc' }}>
-          User: {user.firstName || 'User'} {user.lastName || ''}
-        </h2>
-      </div>
-
-      <div className="admin-grid">
-        {/* Account Profile Card */}
-        <div className="admin-card">
-          <h3 style={{ margin: '0 0 16px', color: '#f0f6fc', fontSize: '16px', fontWeight: 700 }}>
-            Account Profile
-          </h3>
-          <p style={{ margin: '6px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>User ID:</strong> <span style={{ fontFamily: 'monospace', color: '#f0f6fc' }}>{user.id}</span>
-          </p>
-          <p style={{ margin: '6px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>Telegram ID:</strong> <span style={{ fontFamily: 'monospace', color: '#f0f6fc' }}>{user.telegramId || user.id}</span>
-          </p>
-          <p style={{ margin: '6px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>Username:</strong> <span style={{ color: '#58a6ff' }}>{user.username ? `@${user.username}` : 'N/A'}</span>
-          </p>
-          
-          <div style={{
-            margin: '14px 0',
-            padding: '10px 12px',
-            borderRadius: '8px',
-            background: isSuspended && !isExpired ? '#3c1e22' : '#1b2d24',
-            border: `1px solid ${isSuspended && !isExpired ? '#da3633' : '#238636'}`,
-          }}>
-            <p style={{ margin: 0, fontWeight: 700, color: isSuspended && !isExpired ? '#f85149' : '#3fb950', fontSize: '13px' }}>
-              Status: {isSuspended && !isExpired
-                ? (hasExpiry ? `Temporarily Suspended (~${remainingHours}h remaining)` : 'Permanently Suspended')
-                : 'Active'}
-            </p>
-            {hasExpiry && !isExpired && (
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#c9d1d9' }}>
-                Until: {new Date(user.suspendedUntil).toLocaleString()}
-              </p>
-            )}
-            {isSuspended && user.suspendReason && (
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#ffa657' }}>
-                Reason: {user.suspendReason}
-              </p>
-            )}
-          </div>
-
-          <p style={{ margin: '6px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>Referral Code:</strong> <span style={{ fontFamily: 'monospace', color: '#f0f6fc' }}>{user.referralCode || 'N/A'}</span>
-          </p>
-          <p style={{ margin: '6px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>Referrals Count:</strong> <span style={{ color: '#f0f6fc', fontWeight: 600 }}>{user.referralCount || 0}</span>
-          </p>
-          
-          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {isSuspended && !isExpired ? (
-              <button
-                className="admin-button"
-                onClick={handleUnsuspend}
-                style={{ background: '#238636', fontSize: '13px' }}
-              >
-                Unsuspend / Reactivate User
-              </button>
-            ) : (
-              <button
-                className="admin-button admin-button-danger"
-                onClick={() => setShowSuspendModal(true)}
-                style={{ background: '#da3633', fontSize: '13px' }}
-              >
-                Block / Suspend User
-              </button>
-            )}
-
-            <button
-              className="admin-button"
-              onClick={handleClearCache}
-              disabled={clearingCache}
-              style={{
-                background: '#21262d',
-                color: '#f0f6fc',
-                border: '1px solid #30363d',
-                fontSize: '13px',
-              }}
-            >
-              {clearingCache ? 'Clearing...' : '🧹 Clear User Caches'}
-            </button>
+    <div style={{ paddingBottom: '3rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/dashboard/users" className="admin-button" style={{ padding: '6px 12px' }}>
+            ← Back
+          </Link>
+          <div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: '#f0f6fc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>{tier.avatar}</span>
+              <span>{user.firstName} {user.lastName || ''}</span>
+              {user.username && <span style={{ color: '#58a6ff', fontSize: '0.9rem' }}>@{user.username}</span>}
+            </h2>
+            <div style={{ fontSize: '0.8rem', color: '#8b949e', marginTop: '2px' }}>
+              UID: <span style={{ fontFamily: 'monospace' }}>{user.id}</span> • Telegram ID: <span style={{ fontFamily: 'monospace' }}>{user.telegramId}</span>
+            </div>
           </div>
         </div>
 
-        {/* Wallet & Payout Method Card */}
-        <div className="admin-card">
-          <h3 style={{ margin: '0 0 16px', color: '#f0f6fc', fontSize: '16px', fontWeight: 700 }}>
-            Wallet & Saved Payout Details
-          </h3>
-          <p style={{ color: '#8b949e', fontSize: '12px', margin: '0 0 4px' }}>Points Balance</p>
-          <p style={{ color: '#FFD700', fontSize: '30px', fontWeight: 800, margin: '0 0 12px' }}>
-            {(user.pointsBalance ?? user.balance ?? 0).toLocaleString()} pts
-          </p>
-          <p style={{ margin: '4px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>Lifetime Earned:</strong> {(user.lifetimeEarned || 0).toLocaleString()} pts
-          </p>
-          <p style={{ margin: '4px 0', fontSize: '13px' }}>
-            <strong style={{ color: '#8b949e' }}>Lifetime Withdrawn:</strong> {(user.lifetimeWithdrawn || 0).toLocaleString()} pts
-          </p>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button onClick={() => setShowAdjustModal(true)} className="admin-button admin-button-primary">
+            💰 Adjust Doracakes
+          </button>
+          {isSuspended && !isExpired ? (
+            <button onClick={handleUnsuspend} className="admin-button" style={{ borderColor: '#238636', color: '#3fb950' }}>
+              ✓ Reactivate Miner
+            </button>
+          ) : (
+            <button onClick={() => setShowSuspendModal(true)} className="admin-button" style={{ borderColor: '#da3633', color: '#f85149' }}>
+              🛑 Suspend / Ban
+            </button>
+          )}
+        </div>
+      </div>
 
-          {/* Saved Payout Information */}
-          <div style={{
-            marginTop: '16px',
-            padding: '12px',
-            borderRadius: '8px',
-            background: '#0b0e14',
-            border: '1px solid #30363d',
-          }}>
-            <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 700, color: '#58a6ff' }}>
-              Default Payout Account:
-            </p>
-            {user.defaultPayoutMethod === 'upi' ? (
-              <div>
-                <span style={{ fontSize: '11px', color: '#8b949e' }}>UPI ID: </span>
-                <span style={{ fontSize: '13px', fontFamily: 'monospace', color: '#f0f6fc', fontWeight: 600 }}>
-                  {user.savedUpiId || 'Not provided'}
-                </span>
+      {/* Hero Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        {/* Tier Card */}
+        <div
+          className="admin-card"
+          style={{
+            margin: 0,
+            background: `linear-gradient(135deg, ${tier.color}15, #0f172a)`,
+            border: `1px solid ${tier.color}40`,
+          }}
+        >
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CHARACTER EVOLUTION</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+            <span style={{ fontSize: '1.8rem' }}>{tier.avatar}</span>
+            <div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: tier.color }}>
+                Level {user.level || 1}: {tier.name}
               </div>
-            ) : user.defaultPayoutMethod === 'bank_transfer' && user.savedBankDetails ? (
-              <div style={{ fontSize: '12px', color: '#f0f6fc', lineHeight: 1.5 }}>
-                <div><span style={{ color: '#8b949e' }}>Name:</span> {user.savedBankDetails.accountName}</div>
-                <div><span style={{ color: '#8b949e' }}>A/C:</span> <span style={{ fontFamily: 'monospace' }}>{user.savedBankDetails.accountNumber}</span></div>
-                <div><span style={{ color: '#8b949e' }}>IFSC:</span> <span style={{ fontFamily: 'monospace' }}>{user.savedBankDetails.ifscCode}</span></div>
-              </div>
-            ) : (
-              <span style={{ fontSize: '12px', color: '#8b949e' }}>No default payout method saved yet</span>
-            )}
+              <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{tier.tagline}</div>
+            </div>
           </div>
+        </div>
 
-          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button className="admin-button" onClick={() => setShowAdjustModal(true)} style={{ fontSize: '13px' }}>
-              Adjust Balance
-            </button>
-            <button
-              className="admin-button"
-              onClick={handleClearCache}
-              disabled={clearingCache}
-              style={{
-                background: '#21262d',
-                color: '#f0f6fc',
-                border: '1px solid #30363d',
-                fontSize: '13px',
-              }}
-            >
-              {clearingCache ? 'Clearing...' : '🧹 Clear Caches'}
-            </button>
+        {/* Balance Card */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CURRENT DORACAKES</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f59e0b', marginTop: '4px' }}>
+            {(user.coins ?? user.pointsBalance ?? 0).toLocaleString()} 🥞
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
+            Lifetime Earned: {(user.lifetimeEarned || 0).toLocaleString()}
+          </div>
+        </div>
+
+        {/* Profit Per Hour */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>PASSIVE MINING YIELD</div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#34d399', marginTop: '4px' }}>
+            +{(user.profitPerHour || 0).toLocaleString()} <span style={{ fontSize: '0.85rem' }}>/ hr</span>
+          </div>
+          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
+            From {unlockedCards.length} unlocked gadget cards
+          </div>
+        </div>
+
+        {/* Energy & Streak */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>ENERGY &amp; STREAK</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#38bdf8', marginTop: '4px' }}>
+            ⚡ {user.energy || 0} / {user.maxEnergy || 1000}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#facc15', marginTop: '2px' }}>
+            🔥 {user.checkinStreak || 0}-Day Check-in Streak
           </div>
         </div>
       </div>
 
-      {/* User Withdrawal Requests */}
-      <div className="admin-card admin-table-container" style={{ marginTop: '20px' }}>
-        <h3 style={{ margin: '0 0 16px', color: '#f0f6fc', fontSize: '16px', fontWeight: 700 }}>
-          User Withdrawal History
-        </h3>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Amount</th>
-              <th>Method</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {withdrawals.length === 0 ? (
-              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#8b949e', padding: '16px' }}>No withdrawals recorded for this user.</td></tr>
-            ) : (
-              withdrawals.map((w: any) => (
-                <tr key={w.id}>
-                  <td style={{ fontWeight: 700, color: '#f59e0b' }}>{w.amount?.toLocaleString()} pts</td>
-                  <td style={{ textTransform: 'uppercase', fontSize: '11px' }}>{w.method}</td>
-                  <td>
-                    <span style={{
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      background: w.status === 'success' || w.status === 'paid' ? '#23863620' : w.status === 'processing' || w.status === 'approved' ? '#1f6feb20' : w.status === 'rejected' ? '#da363320' : '#d2992220',
-                      color: w.status === 'success' || w.status === 'paid' ? '#3fb950' : w.status === 'processing' || w.status === 'approved' ? '#58a6ff' : w.status === 'rejected' ? '#f85149' : '#d29922',
-                    }}>
-                      {w.status === 'success' || w.status === 'paid' ? 'Success' : w.status === 'processing' || w.status === 'approved' ? 'Processing' : w.status === 'rejected' ? 'Rejected' : 'Pending'}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '12px', color: '#8b949e' }}>
-                    {w.createdAt ? new Date(w.createdAt).toLocaleDateString() : '—'}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Recent Transactions */}
-      <div className="admin-card admin-table-container" style={{ marginTop: '20px' }}>
-        <h3 style={{ margin: '0 0 16px', color: '#f0f6fc', fontSize: '16px', fontWeight: 700 }}>
-          Recent Point Transactions
-        </h3>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Amount</th>
-              <th>Description</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.length === 0 ? (
-              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#8b949e', padding: '16px' }}>No transactions recorded.</td></tr>
-            ) : (
-              transactions.map((tx: any) => (
-                <tr key={tx.id}>
-                  <td style={{ fontWeight: 600 }}>{tx.type}</td>
-                  <td style={{ color: tx.amount > 0 ? '#3fb950' : '#f85149', fontWeight: 700 }}>
-                    {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
-                  </td>
-                  <td>{tx.description}</td>
-                  <td style={{ fontSize: '12px', color: '#8b949e' }}>
-                    {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : '—'}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Suspend User Modal */}
-      {showSuspendModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: '16px', backdropFilter: 'blur(3px)',
-        }}>
-          <div className="admin-card" style={{ maxWidth: '440px', width: '100%', border: '1px solid #da363350' }}>
-            <h3 style={{ margin: '0 0 12px', color: '#f85149', fontSize: '18px' }}>
-              Block / Suspend User
-            </h3>
-            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#8b949e' }}>
-              User: <strong style={{ color: '#f0f6fc' }}>{user.firstName}</strong> ({user.telegramId || user.id})
-            </p>
-
-            <form onSubmit={handleSuspendSubmit}>
-              <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                Suspension Duration
-              </label>
-              <select
-                className="admin-input"
-                value={suspendDuration}
-                onChange={(e) => setSuspendDuration(e.target.value)}
-                style={{ width: '100%', marginBottom: '12px' }}
-              >
-                <option value="1h">1 Hour (Quick Warning)</option>
-                <option value="24h">24 Hours (1 Day)</option>
-                <option value="3d">3 Days</option>
-                <option value="7d">7 Days (1 Week)</option>
-                <option value="30d">30 Days (1 Month)</option>
-                <option value="custom">Custom Hours</option>
-                <option value="permanent">Permanent Ban</option>
-              </select>
-
-              {suspendDuration === 'custom' && (
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                    Hours
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="8760"
-                    className="admin-input"
-                    value={customHours}
-                    onChange={(e) => setCustomHours(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {/* Unlocked Mining Cards Portfolio */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#f0f6fc', margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>⛏️</span> Mining Cards Portfolio ({unlockedCards.length} Cards)
+          </h3>
+          {unlockedCards.length === 0 ? (
+            <div style={{ color: '#64748b', fontSize: '0.85rem', padding: '1rem 0' }}>
+              No mining cards unlocked yet.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+              {unlockedCards.map(([cardId, lvl]) => (
+                <div
+                  key={cardId}
+                  style={{
+                    background: '#090d16',
+                    border: '1px solid #1e293b',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {cardId.replace(/_/g, ' ')}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#f59e0b', marginTop: '2px' }}>
+                    Lvl {String(lvl)}
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Payout Details & Anti-Fraud */}
+        <div className="admin-card" style={{ margin: 0 }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#f0f6fc', margin: '0 0 0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>💳</span> Payout &amp; Security Profile
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+              <span style={{ color: '#8b949e' }}>Payout Method:</span>
+              <span style={{ fontWeight: 700, color: '#38bdf8' }}>
+                {user.payoutMethod?.type || user.defaultPayoutMethod || 'Not Configured'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+              <span style={{ color: '#8b949e' }}>Account / Wallet:</span>
+              <span style={{ fontWeight: 600, color: '#f0f6fc', fontFamily: 'monospace' }}>
+                {user.payoutMethod?.account || user.walletAddress || user.savedUpiId || '—'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+              <span style={{ color: '#8b949e' }}>Account Status:</span>
+              <span style={{ fontWeight: 700, color: isSuspended && !isExpired ? '#f85149' : '#3fb950' }}>
+                {isSuspended && !isExpired ? (user.suspendedUntil ? 'Temp Suspended' : 'Banned') : 'Active / Good Standing'}
+              </span>
+            </div>
+
+            {user.fraudReason && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f85149' }}>
+                <span>Flag Reason:</span>
+                <span style={{ fontWeight: 600 }}>{user.fraudReason}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Transactions Table */}
+      <div className="admin-card" style={{ margin: '0 0 1.5rem 0' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#f0f6fc', margin: '0 0 0.8rem' }}>
+          Recent Transactions
+        </h3>
+        <div className="admin-table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', color: '#8b949e', padding: '1.5rem' }}>
+                    No transactions recorded.
+                  </td>
+                </tr>
+              ) : (
+                transactions.map((tx) => (
+                  <tr key={tx.id}>
+                    <td style={{ fontWeight: 700, color: '#60a5fa' }}>{tx.type}</td>
+                    <td style={{ fontWeight: 800, color: tx.amount > 0 ? '#3fb950' : '#f85149' }}>
+                      {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()} 🥞
+                    </td>
+                    <td style={{ color: '#8b949e', fontSize: '0.85rem' }}>{tx.description || '—'}</td>
+                    <td style={{ color: '#8b949e', fontSize: '0.8rem' }}>{formatDate(tx.createdAt)}</td>
+                  </tr>
+                ))
               )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-              <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                Reason (Shown to User)
-              </label>
-              <textarea
-                className="admin-input"
-                rows={3}
-                placeholder="Reason for suspension..."
-                value={suspendReason}
-                onChange={(e) => setSuspendReason(e.target.value)}
-                style={{ width: '100%', resize: 'vertical', marginBottom: '18px' }}
-              />
+      {/* Adjust Balance Modal */}
+      {showAdjustModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '1rem',
+        }}>
+          <div className="admin-card" style={{ width: '100%', maxWidth: '420px', margin: 0 }}>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#f0f6fc' }}>💰 Adjust Doracakes Balance</h3>
+            <p style={{ fontSize: '0.85rem', color: '#8b949e', marginBottom: '1rem' }}>
+              Add (positive) or deduct (negative) Doracakes for <b style={{ color: '#fff' }}>{user.firstName}</b>.
+            </p>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <form onSubmit={handleAdjustBalanceSubmit}>
+              <div className="admin-form-group">
+                <label className="admin-label">Amount (e.g. 50000 or -10000)</label>
+                <input
+                  type="number"
+                  className="admin-input"
+                  value={adjustAmount}
+                  onChange={(e) => setAdjustAmount(e.target.value)}
+                  placeholder="e.g. 50000"
+                  required
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label className="admin-label">Reason / Reference</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  placeholder="e.g. Community giveaway reward / Correction"
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1.5rem' }}>
                 <button
                   type="button"
-                  onClick={() => setShowSuspendModal(false)}
-                  disabled={submittingSuspend}
-                  style={{
-                    background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9',
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
-                  }}
+                  onClick={() => setShowAdjustModal(false)}
+                  className="admin-button"
+                  disabled={submittingAdjust}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={submittingSuspend}
-                  style={{
-                    background: '#da3633', border: 'none', color: '#fff',
-                    padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-                  }}
+                  className="admin-button admin-button-primary"
+                  disabled={submittingAdjust}
                 >
-                  {submittingSuspend ? 'Suspending...' : 'Confirm Suspend'}
+                  {submittingAdjust ? 'Processing...' : 'Confirm Adjustment'}
                 </button>
               </div>
             </form>
@@ -538,65 +462,80 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      {/* Adjust Balance Modal */}
-      {showAdjustModal && (
+      {/* Suspend Modal */}
+      {showSuspendModal && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: '16px', backdropFilter: 'blur(3px)',
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '1rem',
         }}>
-          <div className="admin-card" style={{ maxWidth: '420px', width: '100%' }}>
-            <h3 style={{ margin: '0 0 12px', color: '#f0f6fc', fontSize: '18px' }}>
-              Adjust User Balance
-            </h3>
-            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#8b949e' }}>
-              Current: <strong style={{ color: '#FFD700' }}>{(user.pointsBalance ?? user.balance ?? 0).toLocaleString()} pts</strong>
+          <div className="admin-card" style={{ width: '100%', maxWidth: '420px', margin: 0, border: '1px solid #da3633' }}>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#f85149' }}>🛑 Suspend / Ban Miner</h3>
+            <p style={{ fontSize: '0.85rem', color: '#8b949e', marginBottom: '1rem' }}>
+              Set suspension restrictions for <b style={{ color: '#fff' }}>{user.firstName}</b>.
             </p>
 
-            <form onSubmit={handleAdjust}>
-              <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                Adjustment Amount (use negative for deduction)
-              </label>
-              <input
-                type="number"
-                placeholder="e.g. 500 or -200"
-                className="admin-input"
-                value={adjustAmount}
-                onChange={(e) => setAdjustAmount(e.target.value)}
-                style={{ width: '100%', marginBottom: '12px' }}
-              />
+            <form onSubmit={handleSuspendSubmit}>
+              <div className="admin-form-group">
+                <label className="admin-label">Duration</label>
+                <select
+                  className="admin-input"
+                  value={suspendDuration}
+                  onChange={(e) => setSuspendDuration(e.target.value)}
+                >
+                  <option value="24h">24 Hours (1 Day)</option>
+                  <option value="48h">48 Hours (2 Days)</option>
+                  <option value="7d">7 Days (1 Week)</option>
+                  <option value="30d">30 Days (1 Month)</option>
+                  <option value="permanent">Permanent Ban</option>
+                  <option value="custom">Custom Hours</option>
+                </select>
+              </div>
 
-              <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                Reason for Adjustment
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Manual correction, bonus grant..."
-                className="admin-input"
-                value={adjustReason}
-                onChange={(e) => setAdjustReason(e.target.value)}
-                style={{ width: '100%', marginBottom: '18px' }}
-              />
+              {suspendDuration === 'custom' && (
+                <div className="admin-form-group">
+                  <label className="admin-label">Custom Hours</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className="admin-input"
+                    value={customHours}
+                    onChange={(e) => setCustomHours(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div className="admin-form-group">
+                <label className="admin-label">Reason</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={suspendReason}
+                  onChange={(e) => setSuspendReason(e.target.value)}
+                  placeholder="e.g. Fraudulent activity / Bot usage"
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1.5rem' }}>
                 <button
                   type="button"
-                  onClick={() => setShowAdjustModal(false)}
-                  disabled={submittingAdjust}
-                  style={{
-                    background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9',
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
-                  }}
+                  onClick={() => setShowSuspendModal(false)}
+                  className="admin-button"
+                  disabled={submittingSuspend}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={submittingAdjust}
                   className="admin-button"
-                  style={{ padding: '8px 18px', fontSize: '13px', fontWeight: 600 }}
+                  style={{ backgroundColor: '#da3633', color: '#fff', borderColor: '#da3633' }}
+                  disabled={submittingSuspend}
                 >
-                  {submittingAdjust ? 'Saving...' : 'Apply Adjustment'}
+                  {submittingSuspend ? 'Suspending...' : 'Confirm Ban'}
                 </button>
               </div>
             </form>

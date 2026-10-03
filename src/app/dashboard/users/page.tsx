@@ -4,6 +4,16 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
 
+const CHARACTER_TIERS: Record<number, { name: string; avatar: string; color: string }> = {
+  1: { name: 'Doracake', avatar: '🥞', color: '#f59e0b' },
+  2: { name: 'Nobita', avatar: '👦', color: '#eab308' },
+  3: { name: 'Shizuka', avatar: '🌸', color: '#ec4899' },
+  4: { name: 'Suneo', avatar: '💎', color: '#38bdf8' },
+  5: { name: 'Gian', avatar: '🦁', color: '#f97316' },
+  6: { name: 'Dorami', avatar: '🎀', color: '#facc15' },
+  7: { name: 'Doraemon', avatar: '👑', color: '#3b82f6' },
+};
+
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +35,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await adminFetch(`/api/admin/users?status=${status}&search=${encodeURIComponent(search)}`);
+      const res = await adminFetch(`/api/admin/users?status=${status}&search=${encodeURIComponent(search)}&refresh=true`);
       if (res.success && res.data) {
         setUsers(Array.isArray(res.data) ? res.data : (res.data as any).users || []);
       }
@@ -117,9 +127,9 @@ export default function UsersPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#f0f6fc' }}>User Management</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#f0f6fc' }}>User &amp; Miners Management</h2>
           <p style={{ margin: '4px 0 0', color: '#8b949e', fontSize: '0.875rem' }}>
-            View users, manage accounts, block/unblock, and adjust points balances.
+            Inspect players, 7-Character Tiers, Doracakes balances, hourly profits, and manage account statuses.
           </p>
         </div>
         <button onClick={fetchUsers} className="admin-button" style={{ padding: '6px 14px', fontSize: '13px' }}>
@@ -143,8 +153,8 @@ export default function UsersPage() {
           onChange={(e) => setStatus(e.target.value)}
         >
           <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
+          <option value="active">Active Miners</option>
+          <option value="suspended">Suspended / Banned</option>
         </select>
         <button type="submit" className="admin-button">Search</button>
       </form>
@@ -161,26 +171,28 @@ export default function UsersPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Telegram ID</th>
-                <th>Points Balance</th>
+                <th>Miner / User</th>
+                <th>Character Tier</th>
+                <th>Doracakes 🥞</th>
+                <th>Profit / Hour</th>
                 <th>Status</th>
-                <th>Joined Date</th>
+                <th>Joined</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#8b949e' }}>
-                    No users found matching your query.
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#8b949e' }}>
+                    No miners found matching your query.
                   </td>
                 </tr>
               ) : (
-                users.map(user => {
-                  const isSuspended = user.status === 'suspended';
+                users.map((user) => {
+                  const isSuspended = user.status === 'suspended' || user.isBanned;
                   const hasExpiry = isSuspended && user.suspendedUntil;
                   const isExpired = hasExpiry && new Date(user.suspendedUntil).getTime() <= Date.now();
+                  const tier = CHARACTER_TIERS[user.level || 1] || CHARACTER_TIERS[1];
 
                   return (
                     <tr key={user.id}>
@@ -188,18 +200,43 @@ export default function UsersPage() {
                         <div style={{ fontWeight: 600, color: '#f0f6fc' }}>
                           {user.firstName} {user.lastName || ''}
                         </div>
-                        {user.username && (
+                        {user.username ? (
                           <div style={{ fontSize: '0.8rem', color: '#58a6ff' }}>
                             @{user.username}
                           </div>
+                        ) : (
+                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            ID: {user.telegramId || user.id}
+                          </div>
                         )}
                       </td>
-                      <td style={{ fontFamily: 'monospace', color: '#8b949e' }}>
-                        {user.telegramId || user.id}
+                      <td>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: `${tier.color}18`,
+                            border: `1px solid ${tier.color}40`,
+                            color: tier.color,
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          <span>{tier.avatar}</span>
+                          <span>Lvl {user.level || 1}: {tier.name}</span>
+                        </div>
                       </td>
                       <td>
-                        <span style={{ fontWeight: 700, color: '#e3b341' }}>
-                          {(user.pointsBalance ?? user.balance ?? 0).toLocaleString()} pts
+                        <span style={{ fontWeight: 800, color: '#f59e0b' }}>
+                          {(user.pointsBalance ?? user.coins ?? 0).toLocaleString()} 🥞
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight: 700, color: '#34d399' }}>
+                          +{(user.profitPerHour || 0).toLocaleString()}/h
                         </span>
                       </td>
                       <td>
@@ -213,68 +250,38 @@ export default function UsersPage() {
                           whiteSpace: 'nowrap',
                         }}>
                           {isSuspended && !isExpired
-                            ? (user.suspendedUntil ? 'Temp Blocked' : 'Perm Blocked') 
+                            ? (user.suspendedUntil ? 'Temp Blocked' : 'Banned') 
                             : 'Active'}
                         </span>
                       </td>
-                      <td style={{ fontSize: '0.85rem', color: '#8b949e' }}>
+                      <td style={{ fontSize: '0.82rem', color: '#8b949e' }}>
                         {formatDate(user.createdAt)}
                       </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          {isSuspended && !isExpired ? (
-                            <button
-                              onClick={() => handleUnblock(user)}
-                              style={{
-                                background: '#23863620',
-                                border: '1px solid #23863650',
-                                color: '#3fb950',
-                                padding: '4px 10px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              Unblock
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleOpenBlockModal(user)}
-                              style={{
-                                background: '#da363315',
-                                border: '1px solid #da363340',
-                                color: '#f85149',
-                                padding: '4px 10px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              Block
-                            </button>
-                          )}
-
-                          <Link 
-                            href={`/dashboard/users/${user.id}`} 
-                            style={{
-                              background: '#21262d',
-                              border: '1px solid #30363d',
-                              color: '#58a6ff',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              textDecoration: 'none',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              whiteSpace: 'nowrap',
-                            }}
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <Link 
+                          href={`/dashboard/users/${user.id}`}
+                          className="admin-button"
+                          style={{ padding: '4px 10px', fontSize: '0.75rem', marginRight: '6px' }}
+                        >
+                          Details
+                        </Link>
+                        {isSuspended && !isExpired ? (
+                          <button
+                            onClick={() => handleUnblock(user)}
+                            className="admin-button"
+                            style={{ padding: '4px 8px', fontSize: '0.75rem', borderColor: '#238636', color: '#3fb950' }}
                           >
-                            Manage →
-                          </Link>
-                        </div>
+                            Unblock
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenBlockModal(user)}
+                            className="admin-button"
+                            style={{ padding: '4px 8px', fontSize: '0.75rem', borderColor: '#da3633', color: '#f85149' }}
+                          >
+                            Block
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -285,90 +292,93 @@ export default function UsersPage() {
         )}
       </div>
 
-      {/* Block / Suspend User Modal */}
+      {/* Suspend / Block Modal */}
       {selectedUserForSuspend && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: '16px', backdropFilter: 'blur(3px)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem',
         }}>
-          <div className="admin-card" style={{ maxWidth: '460px', width: '100%', margin: 0, border: '1px solid #da363350' }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#f85149' }}>
-              Block / Suspend User
+          <div className="admin-card" style={{ width: '100%', maxWidth: '440px', margin: 0, border: '1px solid #da3633' }}>
+            <h3 style={{ color: '#f85149', marginTop: 0, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🛑</span> Suspend / Ban Miner
             </h3>
-            <p style={{ margin: '0 0 16px', color: '#8b949e', fontSize: '13px' }}>
-              User: <strong style={{ color: '#f0f6fc' }}>{selectedUserForSuspend.firstName} {selectedUserForSuspend.lastName || ''}</strong> ({selectedUserForSuspend.telegramId || selectedUserForSuspend.id})
+            <p style={{ color: '#8b949e', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              Apply a suspension or permanent ban to{' '}
+              <b style={{ color: '#f0f6fc' }}>
+                {selectedUserForSuspend.firstName || selectedUserForSuspend.username || selectedUserForSuspend.id}
+              </b>
+              .
             </p>
 
             <form onSubmit={handleBlockSubmit}>
-              <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                Suspension Duration
-              </label>
-              <select
-                className="admin-input"
-                value={suspendDuration}
-                onChange={(e) => setSuspendDuration(e.target.value)}
-                style={{ width: '100%', marginBottom: '12px' }}
-              >
-                <option value="1h">1 Hour (Quick Warning)</option>
-                <option value="24h">24 Hours (1 Day)</option>
-                <option value="3d">3 Days</option>
-                <option value="7d">7 Days (1 Week)</option>
-                <option value="30d">30 Days (1 Month)</option>
-                <option value="custom">Custom Hours</option>
-                <option value="permanent">Permanent Ban</option>
-              </select>
+              <div className="admin-form-group">
+                <label className="admin-label">Duration</label>
+                <select 
+                  className="admin-input"
+                  value={suspendDuration}
+                  onChange={(e) => setSuspendDuration(e.target.value)}
+                >
+                  <option value="24h">24 Hours (1 Day)</option>
+                  <option value="48h">48 Hours (2 Days)</option>
+                  <option value="7d">7 Days (1 Week)</option>
+                  <option value="30d">30 Days (1 Month)</option>
+                  <option value="permanent">Permanent Ban</option>
+                  <option value="custom">Custom Hours</option>
+                </select>
+              </div>
 
               {suspendDuration === 'custom' && (
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                    Number of Hours
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="8760"
-                    className="admin-input"
+                <div className="admin-form-group">
+                  <label className="admin-label">Custom Hours</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="8760" 
+                    className="admin-input" 
                     value={customHours}
                     onChange={(e) => setCustomHours(e.target.value)}
-                    style={{ width: '100%' }}
+                    required
                   />
                 </div>
               )}
 
-              <label style={{ fontSize: '12px', color: '#8b949e', display: 'block', marginBottom: '6px' }}>
-                Reason (Shown to User)
-              </label>
-              <textarea
-                className="admin-input"
-                rows={3}
-                placeholder="e.g. Multiple fake referrals detected, suspicious bot activity..."
-                value={suspendReason}
-                onChange={(e) => setSuspendReason(e.target.value)}
-                style={{ width: '100%', resize: 'vertical', marginBottom: '18px' }}
-              />
+              <div className="admin-form-group">
+                <label className="admin-label">Reason for Suspension</label>
+                <input 
+                  type="text" 
+                  className="admin-input" 
+                  placeholder="e.g. Autoclicker bot detected / Fake referrals"
+                  value={suspendReason}
+                  onChange={(e) => setSuspendReason(e.target.value)}
+                  required
+                />
+              </div>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedUserForSuspend(null)}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1.5rem' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setSelectedUserForSuspend(null)} 
+                  className="admin-button"
                   disabled={submittingSuspend}
-                  style={{
-                    background: '#21262d', border: '1px solid #30363d', color: '#c9d1d9',
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
-                  }}
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
+                <button 
+                  type="submit" 
+                  className="admin-button"
+                  style={{ backgroundColor: '#da3633', color: '#fff', borderColor: '#da3633' }}
                   disabled={submittingSuspend}
-                  style={{
-                    background: '#da3633', border: 'none', color: '#fff',
-                    padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-                  }}
                 >
-                  {submittingSuspend ? 'Blocking...' : 'Confirm Block'}
+                  {submittingSuspend ? 'Suspending...' : 'Confirm Suspension'}
                 </button>
               </div>
             </form>
