@@ -4,8 +4,8 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { FieldValue } from 'firebase-admin/firestore';
 import {
   autoCalculateCardMetrics,
-  getDynamicMiningCardsMap,
 } from '@/lib/mining-cards';
+import { getDynamicMiningCardsMap } from '@/lib/mining-cards-server';
 
 export async function GET(
   request: Request,
