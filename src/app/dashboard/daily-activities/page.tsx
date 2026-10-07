@@ -437,7 +437,21 @@ export default function DailyActivitiesAdminPage() {
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <div style={{ fontSize: '1.4rem' }}>{card.emoji || '⚡'}</div>
+                      <div style={{ width: '32px', height: '32px', margin: '0 auto 4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {card.icon ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={card.icon}
+                            alt={card.name}
+                            style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+                            onError={(e) => {
+                              (e.target as any).src = '/icons/take_copter.png';
+                            }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '1.4rem' }}>{card.emoji || '⚡'}</span>
+                        )}
+                      </div>
                       <div
                         style={{
                           fontSize: '0.72rem',
