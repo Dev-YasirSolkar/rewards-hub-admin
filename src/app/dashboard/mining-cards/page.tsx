@@ -6,6 +6,74 @@ import { MiningCardDef, autoCalculateCardMetrics } from '@/lib/mining-cards';
 
 const CATEGORIES = ['Gadgets', 'Friends', 'Future Tech', 'Specials'] as const;
 
+// Helper to determine if an icon string is an image URL/path or an emoji
+export function isImageUrl(icon?: string): boolean {
+  if (!icon || typeof icon !== 'string') return false;
+  const trimmed = icon.trim();
+  return (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/') ||
+    trimmed.startsWith('data:image')
+  );
+}
+
+// Resilient Card Icon Renderer Component
+export function CardIconRenderer({
+  icon,
+  emoji,
+  name,
+  size = 32,
+}: {
+  icon?: string;
+  emoji?: string;
+  name?: string;
+  size?: number;
+}) {
+  const [imgError, setImgError] = useState(false);
+
+  // Reset imgError state if icon changes
+  useEffect(() => {
+    setImgError(false);
+  }, [icon]);
+
+  const hasImgUrl = isImageUrl(icon) && !imgError;
+
+  if (hasImgUrl) {
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={icon}
+        alt={name || 'Card Icon'}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          objectFit: 'contain',
+          display: 'block',
+        }}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  // Fallback: If not an image URL or image failed to load, display emoji cleanly
+  const displayEmoji = (!isImageUrl(icon) && icon && icon.trim()) || emoji || '⚡';
+  return (
+    <span
+      style={{
+        fontSize: `${Math.max(14, Math.round(size * 0.72))}px`,
+        lineHeight: 1,
+        userSelect: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {displayEmoji}
+    </span>
+  );
+}
+
 // Preset Built-in Icons Available in /public/icons/
 const PRESET_ICONS = [
   { name: 'Bamboo Copter', path: '/icons/take_copter.png' },
@@ -59,7 +127,7 @@ export default function MiningCardsAdminPage() {
   const [category, setCategory] = useState<'Gadgets' | 'Friends' | 'Future Tech' | 'Specials'>('Gadgets');
   const [active, setActive] = useState(true);
 
-  // Icon Input Mode: 'file' | 'url' | 'presets'
+  // Icon Input Mode: 'presets' | 'file' | 'url'
   const [iconInputMode, setIconInputMode] = useState<'presets' | 'file' | 'url'>('presets');
   const [fileUploading, setFileUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState('');
@@ -454,15 +522,7 @@ export default function MiningCardsAdminPage() {
                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
                           }}
                         >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={card.icon || '/icons/take_copter.png'}
-                            alt={card.name}
-                            style={{ width: '32px', height: '32px', objectFit: 'contain' }}
-                            onError={(e) => {
-                              (e.target as any).src = '/icons/take_copter.png';
-                            }}
-                          />
+                          <CardIconRenderer icon={card.icon} emoji={card.emoji} name={card.name} size={32} />
                         </div>
                         <div>
                           <div style={{ fontWeight: 800, color: '#f8fafc', fontSize: '0.95rem' }}>{card.name}</div>
@@ -776,8 +836,7 @@ export default function MiningCardsAdminPage() {
                                 transition: 'all 0.15s ease',
                               }}
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={p.path} alt={p.name} style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                              <CardIconRenderer icon={p.path} name={p.name} size={28} />
                               <span
                                 style={{
                                   fontSize: '0.65rem',
@@ -851,15 +910,15 @@ export default function MiningCardsAdminPage() {
                     </div>
                   )}
 
-                  {/* ── OPTION C: DIRECT IMAGE URL ── */}
+                  {/* ── OPTION C: DIRECT IMAGE URL OR EMOJI ── */}
                   {iconInputMode === 'url' && (
                     <div>
                       <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '6px' }}>
-                        Paste any external image URL (e.g. https://domain.com/icon.png):
+                        Paste any external image URL (e.g. https://domain.com/icon.png) or emoji:
                       </div>
                       <input
                         type="text"
-                        placeholder="https://... or /icons/custom_icon.png"
+                        placeholder="https://... or /icons/custom.png or 🚀"
                         value={icon}
                         onChange={(e) => {
                           setIcon(e.target.value);
@@ -897,15 +956,7 @@ export default function MiningCardsAdminPage() {
                         boxShadow: '0 0 12px rgba(56, 189, 248, 0.35)',
                       }}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={icon || '/icons/take_copter.png'}
-                        alt="Preview"
-                        style={{ width: '34px', height: '34px', objectFit: 'contain' }}
-                        onError={(e) => {
-                          (e.target as any).src = '/icons/take_copter.png';
-                        }}
-                      />
+                      <CardIconRenderer icon={icon || '/icons/take_copter.png'} name={name} size={32} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f8fafc' }}>
@@ -920,7 +971,11 @@ export default function MiningCardsAdminPage() {
                           textOverflow: 'ellipsis',
                         }}
                       >
-                        {icon.startsWith('data:') ? '📁 Uploaded Base64 Data URL' : icon || '/icons/take_copter.png'}
+                        {icon.startsWith('data:')
+                          ? '📁 Uploaded Base64 Data URL'
+                          : isImageUrl(icon)
+                          ? icon
+                          : `Emoji: ${icon || '⚡'}`}
                       </div>
                     </div>
                   </div>

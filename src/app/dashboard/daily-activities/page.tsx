@@ -438,18 +438,18 @@ export default function DailyActivitiesAdminPage() {
                       }}
                     >
                       <div style={{ width: '32px', height: '32px', margin: '0 auto 4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {card.icon ? (
+                        {card.icon && (card.icon.startsWith('http') || card.icon.startsWith('/') || card.icon.startsWith('data:')) ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={card.icon}
                             alt={card.name}
                             style={{ width: '28px', height: '28px', objectFit: 'contain' }}
                             onError={(e) => {
-                              (e.target as any).src = '/icons/take_copter.png';
+                              (e.target as any).src = '/icons/fan_token.png';
                             }}
                           />
                         ) : (
-                          <span style={{ fontSize: '1.4rem' }}>{card.emoji || '⚡'}</span>
+                          <span style={{ fontSize: '1.4rem' }}>{card.icon || card.emoji || '⚡'}</span>
                         )}
                       </div>
                       <div
