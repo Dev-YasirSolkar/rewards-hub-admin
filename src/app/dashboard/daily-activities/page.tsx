@@ -300,8 +300,8 @@ export default function DailyActivitiesAdminPage() {
                 value={cipher.rewardAmount}
                 onChange={(e) => setCipher({ ...cipher, rewardAmount: Number(e.target.value) })}
                 required
-                min={100}
-                step={1000}
+                min={0}
+                step="any"
               />
             </div>
 
@@ -468,8 +468,8 @@ export default function DailyActivitiesAdminPage() {
                 value={combo.rewardAmount}
                 onChange={(e) => setCombo({ ...combo, rewardAmount: Number(e.target.value) })}
                 required
-                min={100}
-                step={100000}
+                min={0}
+                step="any"
               />
             </div>
 
