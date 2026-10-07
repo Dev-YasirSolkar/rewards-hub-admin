@@ -7,7 +7,7 @@ import { MiningCardDef, autoCalculateCardMetrics } from '@/lib/mining-cards';
 const CATEGORIES = ['Gadgets', 'Friends', 'Future Tech', 'Specials'] as const;
 
 // Helper to determine if an icon string is an image URL/path or an emoji
-export function isImageUrl(icon?: string): boolean {
+function isImageUrl(icon?: string): boolean {
   if (!icon || typeof icon !== 'string') return false;
   const trimmed = icon.trim();
   return (
@@ -19,7 +19,7 @@ export function isImageUrl(icon?: string): boolean {
 }
 
 // Resilient Card Icon Renderer Component
-export function CardIconRenderer({
+function CardIconRenderer({
   icon,
   emoji,
   name,

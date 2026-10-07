@@ -359,6 +359,63 @@ export default function DailyActivitiesAdminPage() {
           )}
 
           <form onSubmit={handleSaveCombo}>
+            {/* 3 Selected Cards Live Preview Bar */}
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f59e0b', marginBottom: '6px' }}>
+                🌟 ACTIVE WINNING COMBO SLOTS (3 CARDS):
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {[0, 1, 2].map((slotIdx) => {
+                  const cardId = combo.cards[slotIdx];
+                  const card = combo.allCards.find((c) => c.id === cardId);
+                  return (
+                    <div
+                      key={slotIdx}
+                      style={{
+                        background: card ? 'rgba(245, 158, 11, 0.15)' : 'rgba(30, 41, 59, 0.4)',
+                        border: card ? '1.5px solid #f59e0b' : '1.5px dashed rgba(255, 255, 255, 0.15)',
+                        borderRadius: '10px',
+                        padding: '8px 6px',
+                        textAlign: 'center',
+                        minHeight: '80px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {card ? (
+                        <>
+                          <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '3px' }}>
+                            {card.icon && (card.icon.startsWith('http') || card.icon.startsWith('/') || card.icon.startsWith('data:')) ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={card.icon}
+                                alt={card.name}
+                                style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+                                onError={(e) => {
+                                  (e.target as any).src = '/icons/fan_token.png';
+                                }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: '1.4rem' }}>{card.icon || card.emoji || '⚡'}</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#fef08a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                            {card.name}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
+                          Slot {slotIdx + 1} Empty
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Category Filter Pills */}
             <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
               <button
