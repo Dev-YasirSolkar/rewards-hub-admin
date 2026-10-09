@@ -79,26 +79,26 @@ export default function AdminDashboard() {
     typeof stats?.paidWithdrawals === 'object' ? stats.paidWithdrawals?.sum ?? 0 : 0;
 
   const statItems = [
-    { label: 'Total Registered Miners', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👥', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
-    { label: 'Active 24h Miners', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
-    { label: 'New Miners Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
+    { label: 'Total Registered Chefs', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👨‍🍳', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
+    { label: 'Active 24h Chefs', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
+    { label: 'New Chefs Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#F59E0B', aura: 'rgba(245, 158, 11, 0.25)' },
     {
-      label: 'Doracakes In Circulation',
-      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} 🥞`,
-      icon: '🥞',
-      color: '#F59E0B',
-      aura: 'rgba(245, 158, 11, 0.25)'
+      label: '$SOLK In Circulation',
+      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} $SOLK`,
+      icon: '💰',
+      color: '#FDE047',
+      aura: 'rgba(253, 224, 71, 0.25)'
     },
     {
       label: 'Pending Payouts',
-      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} 🥞)`,
+      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} $SOLK)`,
       icon: '⏳',
       color: '#F87171',
       aura: 'rgba(248, 113, 113, 0.25)'
     },
     {
       label: 'Settled Payouts',
-      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} 🥞)`,
+      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} $SOLK)`,
       icon: '✅',
       color: '#10B981',
       aura: 'rgba(16, 185, 129, 0.25)'
