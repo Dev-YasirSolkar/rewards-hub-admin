@@ -7,10 +7,10 @@
   --admin-sidebar-bg: #0b101d;
   --admin-card-bg: rgba(15, 23, 42, 0.85);
   --admin-card-hover: rgba(30, 41, 59, 0.85);
-  --admin-border: rgba(255, 255, 255, 0.08);
-  --admin-border-subtle: rgba(255, 255, 255, 0.04);
-  --admin-primary: #3b82f6;
-  --admin-primary-hover: #2563eb;
+  --admin-border: rgba(245, 158, 11, 0.15);
+  --admin-border-subtle: rgba(255, 255, 255, 0.05);
+  --admin-primary: #F59E0B;
+  --admin-primary-hover: #D97706;
   --admin-accent-gold: #F59E0B;
   --admin-success: #10B981;
   --admin-danger: #EF4444;
@@ -18,7 +18,7 @@
   --admin-text-main: #f8fafc;
   --admin-text-muted: #94a3b8;
   --admin-text-dim: #64748b;
-  --admin-gold-gradient: linear-gradient(180deg, #FDE047 0%, #EAB308 60%, #CA8A04 100%);
+  --admin-gold-gradient: linear-gradient(135deg, #FDE047 0%, #F59E0B 60%, #B45309 100%);
   --admin-blue-gradient: linear-gradient(180deg, #38BDF8 0%, #0284C7 60%, #0369A1 100%);
   --admin-green-gradient: linear-gradient(180deg, #34D399 0%, #059669 60%, #047857 100%);
   --admin-red-gradient: linear-gradient(180deg, #F87171 0%, #DC2626 60%, #B91C1C 100%);
@@ -27,23 +27,43 @@
 
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   background-color: var(--admin-bg);
   color: var(--admin-text-main);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   letter-spacing: -0.01em;
 }
 
-/* ── SIDEBAR STYLING ────────────────────────────────────────────────────────── */
+/* ── SIDEBAR STYLING (INDEPENDENT SCROLL) ────────────────────────────────────── */
 .admin-sidebar {
-  width: 240px;
+  width: 260px;
+  height: 100vh;
   background: linear-gradient(180deg, #0b101d 0%, #070a12 100%);
   border-right: 1px solid var(--admin-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), width 0.22s ease;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+  z-index: 40;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.admin-sidebar::-webkit-scrollbar-track {
+  background: rgba(7, 10, 18, 0.5);
+}
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.25);
+  border-radius: 999px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.5);
 }
 
 .admin-sidebar.closed {
@@ -60,7 +80,7 @@
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--admin-border);
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, transparent 100%);
 }
 
 .admin-nav-category {
@@ -88,26 +108,42 @@
 }
 
 .admin-nav-item:hover {
-  background-color: rgba(59, 130, 246, 0.12);
+  background-color: rgba(245, 158, 11, 0.12);
   color: #ffffff;
   transform: translateX(3px);
 }
 
 .admin-nav-item.active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.15) 100%);
+  color: #FDE047;
+  border: 1px solid rgba(245, 158, 11, 0.35);
   font-weight: 800;
-  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
 }
 
-/* ── MAIN CONTENT AREA ─────────────────────────────────────────────────────── */
+/* ── MAIN CONTENT AREA (INDEPENDENT SCROLL) ─────────────────────────────────── */
 .admin-content {
   flex: 1;
-  padding: 1.25rem 1.5rem 2.5rem;
+  height: 100vh;
+  padding: 1.5rem 2rem 3rem;
   min-width: 0;
-  max-width: 1440px;
   overflow-y: auto;
+  overflow-x: hidden;
+  background: radial-gradient(ellipse at 80% 0%, rgba(245, 158, 11, 0.05) 0%, transparent 60%), #070A12;
+}
+
+.admin-content::-webkit-scrollbar {
+  width: 7px;
+}
+.admin-content::-webkit-scrollbar-track {
+  background: rgba(6, 8, 15, 0.7);
+}
+.admin-content::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 999px;
+}
+.admin-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.6);
 }
 
 /* Header & Top Bar */

@@ -98,18 +98,18 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? '' : 'closed'}`}>
         <div className="admin-sidebar-header">
-          <span style={{ fontSize: '1.2rem' }}>⚡</span>
-          <span style={{ color: '#f8fafc' }}>Rewards Hub</span>
+          <span style={{ fontSize: '1.2rem' }}>👑</span>
+          <span style={{ color: '#FDE047', fontWeight: 900 }}>Yasir Fest</span>
           <span style={{
             fontSize: '0.65rem',
-            background: 'rgba(59, 130, 246, 0.2)',
-            color: '#60a5fa',
+            background: 'rgba(245, 158, 11, 0.2)',
+            color: '#FDE047',
             padding: '2px 6px',
             borderRadius: '4px',
             marginLeft: 'auto',
             fontWeight: 800,
           }}>
-            OPS
+            ADMIN
           </span>
         </div>
 
