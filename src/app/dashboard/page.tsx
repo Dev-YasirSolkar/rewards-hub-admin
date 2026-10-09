@@ -130,14 +130,14 @@ export default function AdminDashboard() {
               boxShadow: '0 0 8px #10b981'
             }} />
             <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              Live Doraemon Matrix Node
+              Live Yasir Fest Matrix Node
             </span>
           </div>
           <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '0 0 4px', color: '#f8fafc', letterSpacing: '-0.4px' }}>
-            Rewards Hub Operations &amp; Control
+            Yasir Fest Operations &amp; Control
           </h2>
           <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
-            Real-time telemetry, 7-character tiers, passive mining economy, and payout auditing.
+            Real-time telemetry, 10-career positions, passive kitchen economy, and payout auditing.
           </p>
         </div>
 
@@ -243,8 +243,8 @@ export default function AdminDashboard() {
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>👥 Miners &amp; Tiers</div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Character tiers, Doracakes &amp; bans</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>👥 Chefs &amp; Positions</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>10 Career levels, $SOLK &amp; bans</div>
             </div>
             <span style={{ fontSize: '18px', color: '#38bdf8' }}>→</span>
           </Link>

@@ -47,7 +47,7 @@ export async function PUT(
     const updatedCard = autoCalculateCardMetrics({
       id,
       name: name || existing.name || id,
-      icon: icon || existing.icon || '/icons/take_copter.png',
+      icon: icon || existing.icon || '🍔',
       baseCost: baseCost !== undefined ? Number(baseCost) : (existing.baseCost || 100),
       category: category || existing.category || 'Gadgets',
       emoji: emoji || existing.emoji,

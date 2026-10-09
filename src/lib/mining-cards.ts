@@ -96,7 +96,7 @@ export const MINING_CARDS: MiningCardDef[] = [
     requiredCardLevel: 8,
   },
   {
-    id: 'bamboo_horse',
+    id: 'hot_dog',
     name: 'Hot Dog',
     category: 'Gadgets',
     icon: '🌭',
@@ -124,11 +124,11 @@ export const MINING_CARDS: MiningCardDef[] = [
     profitMult: 1.3,
     requiredLevel: 2,
     maxLevel: 20,
-    requiredCardId: 'bamboo_horse',
+    requiredCardId: 'hot_dog',
     requiredCardLevel: 4,
   },
   {
-    id: 'mini_dora',
+    id: 'choco_bar',
     name: 'Choco Bar',
     category: 'Gadgets',
     icon: '🍫',
@@ -140,7 +140,7 @@ export const MINING_CARDS: MiningCardDef[] = [
     profitMult: 1.33,
     requiredLevel: 3,
     maxLevel: 16,
-    requiredCardId: 'bamboo_horse',
+    requiredCardId: 'hot_dog',
     requiredCardLevel: 6,
   },
   {
@@ -256,7 +256,7 @@ export const MINING_CARDS: MiningCardDef[] = [
     requiredCardLevel: 5,
   },
   {
-    id: 'jaiko_manga',
+    id: 'food_critic',
     name: 'Food Critic',
     category: 'Friends',
     icon: '🧐',
@@ -288,7 +288,7 @@ export const MINING_CARDS: MiningCardDef[] = [
     requiredCardLevel: 6,
   },
   {
-    id: 'sewashi_beacon',
+    id: 'vip_butler',
     name: 'VIP Butler',
     category: 'Friends',
     icon: '🤵',

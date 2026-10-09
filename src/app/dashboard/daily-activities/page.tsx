@@ -39,14 +39,14 @@ interface ComboData {
   date: string;
 }
 
-const PRESET_CIPHERS = ['DORAEMON', 'NOBITA', 'SHIZUKA', 'SUNEO', 'GIAN', 'DORAMI', 'DORACOIN', 'GADGET', 'FUTURE', 'AIRDROP', 'POCKET', 'DORACAKE'];
+const PRESET_CIPHERS = ['FEAST', 'BURGER', 'CHEESE', 'RECIPE', 'KITCHEN', 'SOLKAR', 'DELIVERY', 'BUFFET', 'ROYAL', 'CHEF', 'PIZZA', 'TACO'];
 
 export default function DailyActivitiesAdminPage() {
   // Cipher State
   const [cipher, setCipher] = useState<CipherData>({
-    word: 'DORAEMON',
+    word: 'FEAST',
     rewardAmount: 1000000,
-    hint: '22nd Century Robotic Cat Miner',
+    hint: 'Master Chef Secret Morse',
     date: '',
   });
   const [savingCipher, setSavingCipher] = useState(false);
@@ -231,7 +231,7 @@ export default function DailyActivitiesAdminPage() {
                 className="admin-input"
                 value={cipher.word}
                 onChange={(e) => setCipher({ ...cipher, word: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })}
-                placeholder="e.g. DORAEMON, NOBITA, GADGET"
+                placeholder="e.g. FEAST, BURGER, CHEESE"
                 required
                 style={{ textTransform: 'uppercase', letterSpacing: '3px', fontWeight: 800, fontSize: '1.1rem' }}
               />
@@ -242,9 +242,9 @@ export default function DailyActivitiesAdminPage() {
                     type="button"
                     onClick={() => setCipher({ ...cipher, word: pw })}
                     style={{
-                      background: cipher.word === pw ? '#3b82f6' : 'rgba(59, 130, 246, 0.15)',
-                      color: cipher.word === pw ? '#fff' : '#60a5fa',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      background: cipher.word === pw ? '#F59E0B' : 'rgba(245, 158, 11, 0.15)',
+                      color: cipher.word === pw ? '#070A12' : '#FDE047',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
                       borderRadius: '4px',
                       padding: '2px 8px',
                       fontSize: '0.7rem',
@@ -276,15 +276,15 @@ export default function DailyActivitiesAdminPage() {
                   <div
                     key={i}
                     style={{
-                      background: 'rgba(59, 130, 246, 0.1)',
-                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                      background: 'rgba(245, 158, 11, 0.1)',
+                      border: '1px solid rgba(245, 158, 11, 0.25)',
                       borderRadius: '6px',
                       padding: '4px 8px',
                       textAlign: 'center',
                     }}
                   >
                     <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#f8fafc' }}>{char}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#38bdf8', fontFamily: 'monospace', letterSpacing: '1px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#FDE047', fontFamily: 'monospace', letterSpacing: '1px' }}>
                       {MORSE_TABLE[char] || '?'}
                     </div>
                   </div>
@@ -293,7 +293,7 @@ export default function DailyActivitiesAdminPage() {
             </div>
 
             <div className="admin-form-group">
-              <label className="admin-label">Reward Amount (Doracakes 🥞)</label>
+              <label className="admin-label">Reward Amount ($SOLK Points 💰)</label>
               <input
                 type="number"
                 className="admin-input"
@@ -532,7 +532,7 @@ export default function DailyActivitiesAdminPage() {
             </div>
 
             <div className="admin-form-group">
-              <label className="admin-label">Reward Amount (Doracakes 🥞)</label>
+              <label className="admin-label">Reward Amount ($SOLK Points 💰)</label>
               <input
                 type="number"
                 className="admin-input"
@@ -561,17 +561,17 @@ export default function DailyActivitiesAdminPage() {
         className="admin-card"
         style={{
           marginTop: '1.5rem',
-          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(15, 23, 42, 0.6))',
-          border: '1px solid rgba(59, 130, 246, 0.25)',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.6))',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
           borderRadius: '12px',
           padding: '1.25rem',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.4rem' }}>🌟</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
-              22nd Century Doraemon Gamification Matrix
+            <span style={{ fontSize: '1.4rem' }}>👑</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, color: '#FDE047' }}>
+              Yasir Fest Culinary Gamification Matrix
             </h3>
           </div>
           <span
@@ -596,8 +596,8 @@ export default function DailyActivitiesAdminPage() {
           </div>
 
           <div style={{ background: '#0f172a', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Dynamic Mining Cards</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#facc15', marginTop: '0.2rem' }}>{combo.allCards.length} Dynamic Gadgets</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Dynamic Kitchen Cards</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#facc15', marginTop: '0.2rem' }}>{combo.allCards.length} Food Cards</div>
             <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Syncs live with user /mine screen</div>
           </div>
 
@@ -608,9 +608,9 @@ export default function DailyActivitiesAdminPage() {
           </div>
 
           <div style={{ background: '#0f172a', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Character Tiers Evolution</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f43f5e', marginTop: '0.2rem' }}>7 Legend Characters</div>
-            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Doracake $\to$ Nobita $\to$ Doraemon</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Career Position Tiers</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f43f5e', marginTop: '0.2rem' }}>10 Career Levels</div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Food Noob $\to$ Global Food CEO</div>
           </div>
         </div>
       </div>

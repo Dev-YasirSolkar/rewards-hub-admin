@@ -142,7 +142,7 @@ export default function SettingsPage() {
             <span>⚙️</span> Platform Economy &amp; Game Configuration
           </h2>
           <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>
-            Control Doracakes daily check-in rewards, Monetag ads, lucky spin caps, referral rewards, and withdrawal thresholds.
+            Control $SOLK daily check-in rewards, Monetag ads, lucky spin caps, referral rewards, and withdrawal thresholds.
           </p>
         </div>
         <button
@@ -172,10 +172,10 @@ export default function SettingsPage() {
       {/* 1. Daily Check-in Streak Rewards */}
       <div className="admin-card" style={{ marginBottom: '20px' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 6px', color: '#f8fafc' }}>
-          📅 7-Day Streak Check-in Rewards (Doracakes 🥞)
+          📅 7-Day Streak Check-in Rewards ($SOLK Points 💰)
         </h3>
         <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 16px' }}>
-          Configure Doracakes granted to players for each consecutive day of check-in:
+          Configure $SOLK granted to players for each consecutive day of check-in:
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
@@ -193,7 +193,7 @@ export default function SettingsPage() {
                 min="0"
                 step="500"
               />
-              <span style={{ fontSize: '10px', color: '#8b949e', marginTop: '4px', display: 'block' }}>🥞 Doracakes</span>
+              <span style={{ fontSize: '10px', color: '#8b949e', marginTop: '4px', display: 'block' }}>💰 $SOLK</span>
             </div>
           ))}
         </div>
@@ -226,12 +226,12 @@ export default function SettingsPage() {
               <span>Enable Monetag Ads in User App</span>
             </label>
             <p style={{ color: '#8b949e', fontSize: '11px', margin: '4px 0 0 20px' }}>
-              Users can watch Rewarded Interstitials to earn bonus Doracakes and lucky spins.
+              Users can watch Rewarded Interstitials to earn bonus $SOLK and lucky spins.
             </p>
           </div>
 
           <div>
-            <label className="admin-label">Reward Per Video Ad (Doracakes)</label>
+            <label className="admin-label">Reward Per Video Ad ($SOLK)</label>
             <input
               type="number"
               className="admin-input"
@@ -243,7 +243,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="admin-label">Daily Video Ad Limit (Per Miner)</label>
+            <label className="admin-label">Daily Video Ad Limit (Per Chef)</label>
             <input
               type="number"
               className="admin-input"
@@ -285,7 +285,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Reward Per Direct Referral (Doracakes 🥞)</label>
+            <label className="admin-label">Reward Per Direct Referral ($SOLK 💰)</label>
             <input
               type="number"
               className="admin-input"
@@ -328,7 +328,7 @@ export default function SettingsPage() {
                 checked={settings.withdrawalEnabled}
                 onChange={(e) => setSettings({ ...settings, withdrawalEnabled: e.target.checked })}
               />
-              <span>Allow Miner Withdrawals</span>
+              <span>Allow Chef Withdrawals</span>
             </label>
             <p style={{ color: '#8b949e', fontSize: '11px', margin: '4px 0 0 20px' }}>
               Uncheck to pause all withdrawal requests in the user app.
@@ -336,7 +336,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Minimum Withdrawal Threshold (Doracakes)</label>
+            <label className="admin-label">Minimum Withdrawal Threshold ($SOLK)</label>
             <input
               type="number"
               className="admin-input"
@@ -351,7 +351,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Maximum Single Withdrawal (Doracakes)</label>
+            <label className="admin-label">Maximum Single Withdrawal ($SOLK)</label>
             <input
               type="number"
               className="admin-input"

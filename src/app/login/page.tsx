@@ -64,21 +64,21 @@ export default function LoginPage() {
             width: '56px',
             height: '56px',
             borderRadius: '14px',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1))',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.15))',
+            border: '1px solid rgba(245, 158, 11, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '28px',
             margin: '0 auto 1rem',
           }}>
-            🛡️
+            👑
           </div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', marginBottom: '0.4rem' }}>
-            Rewards Hub Admin
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#FDE047', marginBottom: '0.4rem' }}>
+            Yasir Fest Admin
           </h1>
           <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-            Enter your secure Master Secret Key to access the control center.
+            Enter your secure Master Secret Key to access the culinary command center.
           </p>
         </div>
 

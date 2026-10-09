@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Rewards Hub - Admin Portal',
-  description: 'Enterprise Administrative Dashboard for Telegram Rewards Hub',
+  title: 'Yasir Fest • Super Admin Portal',
+  description: 'Master Culinary Command Center for Yasir Fest',
   robots: 'noindex, nofollow',
 };
 

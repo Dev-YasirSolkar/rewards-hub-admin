@@ -1,5 +1,5 @@
 /**
- * Ultra-Fast In-Memory Cache for Telegram Rewards Hub Admin Panel
+ * Ultra-Fast In-Memory Cache for Yasir Fest Admin Panel
  * Reduces Firestore document reads by 90-99% by buffering queries and aggregations.
  */
 

@@ -5,13 +5,16 @@ import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
 
 const CHARACTER_TIERS: Record<number, { name: string; avatar: string; color: string }> = {
-  1: { name: 'Doracake', avatar: '🥞', color: '#f59e0b' },
-  2: { name: 'Nobita', avatar: '👦', color: '#eab308' },
-  3: { name: 'Shizuka', avatar: '🌸', color: '#ec4899' },
-  4: { name: 'Suneo', avatar: '💎', color: '#38bdf8' },
-  5: { name: 'Gian', avatar: '🦁', color: '#f97316' },
-  6: { name: 'Dorami', avatar: '🎀', color: '#facc15' },
-  7: { name: 'Doraemon', avatar: '👑', color: '#3b82f6' },
+  1: { name: 'Food Noob', avatar: '🍳', color: '#f59e0b' },
+  2: { name: 'Delivery Rider', avatar: '🛵', color: '#eab308' },
+  3: { name: 'Senior Rider', avatar: '⚡', color: '#ec4899' },
+  4: { name: 'Street Food Vendor', avatar: '🌮', color: '#38bdf8' },
+  5: { name: 'Cafe Owner', avatar: '☕', color: '#f97316' },
+  6: { name: 'Restaurant Manager', avatar: '👨‍🍳', color: '#facc15' },
+  7: { name: 'Restaurant Director', avatar: '🎩', color: '#3b82f6' },
+  8: { name: 'Food Tycoon', avatar: '🏢', color: '#a855f7' },
+  9: { name: 'Food Mogul', avatar: '💎', color: '#ec4899' },
+  10: { name: 'Global Food CEO', avatar: '👑', color: '#fbbf24' },
 };
 
 export default function UsersPage() {
@@ -127,9 +130,9 @@ export default function UsersPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#f0f6fc' }}>User &amp; Miners Management</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#f0f6fc' }}>Chefs &amp; Players Management</h2>
           <p style={{ margin: '4px 0 0', color: '#8b949e', fontSize: '0.875rem' }}>
-            Inspect players, 7-Character Tiers, Doracakes balances, hourly profits, and manage account statuses.
+            Inspect players, 10-Career Levels, $SOLK balances, hourly profits, and manage account statuses.
           </p>
         </div>
         <button onClick={fetchUsers} className="admin-button" style={{ padding: '6px 14px', fontSize: '13px' }}>
@@ -153,7 +156,7 @@ export default function UsersPage() {
           onChange={(e) => setStatus(e.target.value)}
         >
           <option value="all">All Statuses</option>
-          <option value="active">Active Miners</option>
+          <option value="active">Active Chefs</option>
           <option value="suspended">Suspended / Banned</option>
         </select>
         <button type="submit" className="admin-button">Search</button>
@@ -171,9 +174,9 @@ export default function UsersPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Miner / User</th>
-                <th>Character Tier</th>
-                <th>Doracakes 🥞</th>
+                <th>Chef / User</th>
+                <th>Career Position</th>
+                <th>$SOLK Points 💰</th>
                 <th>Profit / Hour</th>
                 <th>Status</th>
                 <th>Joined</th>

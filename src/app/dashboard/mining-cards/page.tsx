@@ -74,38 +74,42 @@ function CardIconRenderer({
   );
 }
 
-// Preset Built-in Icons Available in /public/icons/
+// Preset Built-in Icons Available for Kitchen Cards
 const PRESET_ICONS = [
-  { name: 'Bamboo Copter', path: '/icons/take_copter.png' },
-  { name: 'AI Trading Bot', path: '/icons/ai_bot.png' },
-  { name: 'Crypto Bot', path: '/icons/crypto_bot.png' },
-  { name: 'Airdrop Hunter', path: '/icons/airdrop_hunter.png' },
-  { name: 'DEX Listing', path: '/icons/dex_listing.png' },
-  { name: 'CEX Listing', path: '/icons/cex_listing.png' },
-  { name: 'TON Bridge', path: '/icons/ton_bridge.png' },
-  { name: 'Staking Pool', path: '/icons/staking_pool.png' },
-  { name: 'Smart Contract', path: '/icons/smart_contract.png' },
-  { name: 'Cloud Nodes', path: '/icons/cloud_nodes.png' },
-  { name: 'Metaverse Land', path: '/icons/metaverse_land.png' },
-  { name: 'Telegram Channel', path: '/icons/telegram_channel.png' },
-  { name: 'Telegram Boost', path: '/icons/telegram_boost.png' },
-  { name: 'Influencer Collab', path: '/icons/influencer_collab.png' },
-  { name: 'Turbo 2X Power', path: '/icons/turbo_2x.png' },
-  { name: 'Full Tank Refill', path: '/icons/full_tank.png' },
-  { name: 'Daily Reward Box', path: '/icons/daily_reward.png' },
-  { name: 'VC Investment', path: '/icons/vc_investment.png' },
-  { name: 'Viral Meme Token', path: '/icons/viral_meme.png' },
-  { name: 'Web3 Summit', path: '/icons/web3_summit.png' },
-  { name: 'Margin Trading', path: '/icons/margin_trading.png' },
-  { name: 'DAO License', path: '/icons/dao_license.png' },
-  { name: 'Global License', path: '/icons/global_license.png' },
-  { name: 'Anti-Fraud Shield', path: '/icons/anti_fraud.png' },
-  { name: 'Smart Audit', path: '/icons/smart_audit.png' },
-  { name: 'VPN Tunnel', path: '/icons/vpn_tunnel.png' },
-  { name: 'Fan Token', path: '/icons/fan_token.png' },
-  { name: 'Partners Network', path: '/icons/partners.png' },
-  { name: 'Daily Combo Hub', path: '/icons/daily_combo.png' },
-  { name: 'Daily Cipher Key', path: '/icons/daily_cipher.png' },
+  { name: 'Gold Burger', path: '🍔' },
+  { name: 'Cheese Pizza', path: '🍕' },
+  { name: 'Crispy Fries', path: '🍟' },
+  { name: 'Taco Feast', path: '🌮' },
+  { name: 'Donut Glaze', path: '🍩' },
+  { name: 'Hot Dog', path: '🌭' },
+  { name: 'Waffle Stack', path: '🧇' },
+  { name: 'Choco Bar', path: '🍫' },
+  { name: 'Boba Tea', path: '🧋' },
+  { name: 'Master Chef', path: '👨‍🍳' },
+  { name: 'Grill Bot', path: '🤖' },
+  { name: 'Waiter Drone', path: '🛸' },
+  { name: 'Delivery Boy', path: '🛵' },
+  { name: 'Cashier AI', path: '💻' },
+  { name: 'Recipe Guru', path: '📜' },
+  { name: 'Food Critic', path: '🧐' },
+  { name: 'Safety Guard', path: '🛡️' },
+  { name: 'VIP Butler', path: '🤵' },
+  { name: 'Smart Oven', path: '♨️' },
+  { name: 'Blast Freezer', path: '❄️' },
+  { name: 'Auto Fryer', path: '🍳' },
+  { name: 'Juice Press', path: '🧃' },
+  { name: 'Solar Grill', path: '☀️' },
+  { name: 'Spice Lab', path: '🌶️' },
+  { name: '3D Food Rig', path: '🖨️' },
+  { name: 'Steam Boiler', path: '💨' },
+  { name: 'Hydro Farm', path: '🥬' },
+  { name: 'Solkar Secret', path: '👑' },
+  { name: 'Golden Feast', path: '🏆' },
+  { name: 'Michelin Star', path: '⭐' },
+  { name: 'Secret Sauce', path: '🥫' },
+  { name: 'Mega Buffet', path: '🍱' },
+  { name: 'Royal Palace', path: '🏰' },
+  { name: 'Food Empire', path: '🌐' },
 ];
 
 export default function MiningCardsAdminPage() {
@@ -156,7 +160,7 @@ export default function MiningCardsAdminPage() {
     const costNum = Math.max(10, parseInt(baseCost, 10) || 100);
     return autoCalculateCardMetrics({
       name: name || 'Preview Card',
-      icon: icon || '/icons/take_copter.png',
+      icon: icon || '🍔',
       baseCost: costNum,
       category,
     });
@@ -165,7 +169,7 @@ export default function MiningCardsAdminPage() {
   const openCreateModal = () => {
     setEditingCard(null);
     setName('');
-    setIcon('/icons/take_copter.png');
+    setIcon('🍔');
     setBaseCost('500');
     setCategory('Gadgets');
     setActive(true);
@@ -956,7 +960,7 @@ export default function MiningCardsAdminPage() {
                         boxShadow: '0 0 12px rgba(56, 189, 248, 0.35)',
                       }}
                     >
-                      <CardIconRenderer icon={icon || '/icons/take_copter.png'} name={name} size={32} />
+                      <CardIconRenderer icon={icon || '🍔'} name={name} size={32} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f8fafc' }}>

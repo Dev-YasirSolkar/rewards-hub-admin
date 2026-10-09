@@ -5,13 +5,16 @@ import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
 
 const CHARACTER_TIERS: Record<number, { name: string; avatar: string; color: string; tagline: string }> = {
-  1: { name: 'Doracake', avatar: '🥞', color: '#f59e0b', tagline: 'Pure Doracake Fuel' },
-  2: { name: 'Nobita', avatar: '👦', color: '#eab308', tagline: 'Novice Miner' },
-  3: { name: 'Shizuka', avatar: '🌸', color: '#ec4899', tagline: 'Melody Miner' },
-  4: { name: 'Suneo', avatar: '💎', color: '#38bdf8', tagline: 'Elite Gadgeteer' },
-  5: { name: 'Gian', avatar: '🦁', color: '#f97316', tagline: 'Power Miner' },
-  6: { name: 'Dorami', avatar: '🎀', color: '#facc15', tagline: 'Time Patrol Specialist' },
-  7: { name: 'Doraemon', avatar: '👑', color: '#3b82f6', tagline: '22nd Century Master' },
+  1: { name: 'Food Noob', avatar: '🍳', color: '#f59e0b', tagline: 'Beginner Kitchen Worker' },
+  2: { name: 'Delivery Rider', avatar: '🛵', color: '#eab308', tagline: 'Food Delivery Worker' },
+  3: { name: 'Senior Rider', avatar: '⚡', color: '#ec4899', tagline: 'Experienced Delivery Professional' },
+  4: { name: 'Street Food Vendor', avatar: '🌮', color: '#38bdf8', tagline: 'Small Food Business' },
+  5: { name: 'Cafe Owner', avatar: '☕', color: '#f97316', tagline: 'Independent Business Owner' },
+  6: { name: 'Restaurant Manager', avatar: '👨‍🍳', color: '#facc15', tagline: 'Restaurant Operations' },
+  7: { name: 'Restaurant Director', avatar: '🎩', color: '#3b82f6', tagline: 'Business Leadership' },
+  8: { name: 'Food Tycoon', avatar: '🏢', color: '#a855f7', tagline: 'Restaurant Chain Owner' },
+  9: { name: 'Food Mogul', avatar: '💎', color: '#ec4899', tagline: 'Billionaire Entrepreneur' },
+  10: { name: 'Global Food CEO', avatar: '👑', color: '#fbbf24', tagline: 'Ultimate Business Leader' },
 };
 
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -121,7 +124,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     e.preventDefault();
     const amt = parseInt(adjustAmount, 10);
     if (isNaN(amt) || amt === 0) {
-      alert('Enter a valid non-zero amount of Doracakes');
+      alert('Enter a valid non-zero amount of $SOLK');
       return;
     }
 
@@ -136,7 +139,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       });
 
       if (res.success) {
-        alert(`Doracakes balance adjusted by ${amt > 0 ? '+' : ''}${amt.toLocaleString()} 🥞!`);
+        alert(`$SOLK balance adjusted by ${amt > 0 ? '+' : ''}${amt.toLocaleString()} $SOLK!`);
         setShowAdjustModal(false);
         setAdjustAmount('');
         setAdjustReason('');
@@ -217,11 +220,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={() => setShowAdjustModal(true)} className="admin-button admin-button-primary">
-            💰 Adjust Doracakes
+            💰 Adjust $SOLK
           </button>
           {isSuspended && !isExpired ? (
             <button onClick={handleUnsuspend} className="admin-button" style={{ borderColor: '#238636', color: '#3fb950' }}>
-              ✓ Reactivate Miner
+              ✓ Reactivate Chef
             </button>
           ) : (
             <button onClick={() => setShowSuspendModal(true)} className="admin-button" style={{ borderColor: '#da3633', color: '#f85149' }}>
@@ -242,7 +245,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             border: `1px solid ${tier.color}40`,
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CHARACTER EVOLUTION</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CAREER POSITION</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
             <span style={{ fontSize: '1.8rem' }}>{tier.avatar}</span>
             <div>
@@ -256,9 +259,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* Balance Card */}
         <div className="admin-card" style={{ margin: 0 }}>
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CURRENT DORACAKES</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CURRENT $SOLK BALANCE</div>
           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f59e0b', marginTop: '4px' }}>
-            {(user.coins ?? user.pointsBalance ?? 0).toLocaleString()} 🥞
+            {(user.coins ?? user.pointsBalance ?? 0).toLocaleString()} $SOLK
           </div>
           <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
             Lifetime Earned: {(user.lifetimeEarned || 0).toLocaleString()}
@@ -410,9 +413,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           zIndex: 1000, padding: '1rem',
         }}>
           <div className="admin-card" style={{ width: '100%', maxWidth: '420px', margin: 0 }}>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#f0f6fc' }}>💰 Adjust Doracakes Balance</h3>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#f0f6fc' }}>💰 Adjust $SOLK Balance</h3>
             <p style={{ fontSize: '0.85rem', color: '#8b949e', marginBottom: '1rem' }}>
-              Add (positive) or deduct (negative) Doracakes for <b style={{ color: '#fff' }}>{user.firstName}</b>.
+              Add (positive) or deduct (negative) $SOLK for <b style={{ color: '#fff' }}>{user.firstName}</b>.
             </p>
 
             <form onSubmit={handleAdjustBalanceSubmit}>
