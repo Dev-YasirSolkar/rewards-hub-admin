@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { adminFetch } from '@/lib/admin-client';
 import { MiningCardDef, autoCalculateCardMetrics } from '@/lib/mining-cards';
 
-const CATEGORIES = ['Gadgets', 'Friends', 'Future Tech', 'Specials'] as const;
+const CATEGORIES = ['Kitchen', 'Crew', 'Food Tech', 'Specials'] as const;
 
 // Helper to determine if an icon string is an image URL/path or an emoji
 function isImageUrl(icon?: string): boolean {
@@ -128,7 +128,7 @@ export default function MiningCardsAdminPage() {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('');
   const [baseCost, setBaseCost] = useState('500');
-  const [category, setCategory] = useState<'Gadgets' | 'Friends' | 'Future Tech' | 'Specials'>('Gadgets');
+  const [category, setCategory] = useState<'Kitchen' | 'Crew' | 'Food Tech' | 'Specials'>('Kitchen');
   const [active, setActive] = useState(true);
 
   // Icon Input Mode: 'presets' | 'file' | 'url'
@@ -171,7 +171,7 @@ export default function MiningCardsAdminPage() {
     setName('');
     setIcon('🍔');
     setBaseCost('500');
-    setCategory('Gadgets');
+    setCategory('Kitchen');
     setActive(true);
     setMessage(null);
     setUploadedFileName('');
@@ -184,7 +184,7 @@ export default function MiningCardsAdminPage() {
     setName(card.name);
     setIcon(card.icon);
     setBaseCost(card.baseCost.toString());
-    setCategory(card.category || 'Gadgets');
+    setCategory((card.category as any) || 'Kitchen');
     setActive((card as any).active !== false);
     setMessage(null);
     setUploadedFileName('');
@@ -394,18 +394,18 @@ export default function MiningCardsAdminPage() {
         </div>
         <div className="admin-card" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
-            Gadgets Category
+            Kitchen Category
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#34d399', marginTop: '4px' }}>
-            {cards.filter((c) => c.category === 'Gadgets').length}
+            {cards.filter((c) => c.category === 'Kitchen').length}
           </div>
         </div>
         <div className="admin-card" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
-            Friends Category
+            Crew Category
           </div>
           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f472b6', marginTop: '4px' }}>
-            {cards.filter((c) => c.category === 'Friends').length}
+            {cards.filter((c) => c.category === 'Crew').length}
           </div>
         </div>
         <div className="admin-card" style={{ padding: '16px' }}>
@@ -542,19 +542,19 @@ export default function MiningCardsAdminPage() {
                           fontSize: '0.75rem',
                           fontWeight: 800,
                           background:
-                            card.category === 'Gadgets'
+                            card.category === 'Kitchen'
                               ? 'rgba(56, 189, 248, 0.15)'
-                              : card.category === 'Friends'
+                              : card.category === 'Crew'
                               ? 'rgba(236, 72, 153, 0.15)'
-                              : card.category === 'Future Tech'
+                              : card.category === 'Food Tech'
                               ? 'rgba(234, 179, 8, 0.15)'
                               : 'rgba(168, 85, 247, 0.15)',
                           color:
-                            card.category === 'Gadgets'
+                            card.category === 'Kitchen'
                               ? '#38bdf8'
-                              : card.category === 'Friends'
+                              : card.category === 'Crew'
                               ? '#f472b6'
-                              : card.category === 'Future Tech'
+                              : card.category === 'Food Tech'
                               ? '#fde047'
                               : '#c084fc',
                           border: '1px solid rgba(255, 255, 255, 0.08)',

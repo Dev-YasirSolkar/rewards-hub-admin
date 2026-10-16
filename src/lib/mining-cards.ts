@@ -1,7 +1,7 @@
 export interface MiningCardDef {
   id: string;
   name: string;
-  category: 'Gadgets' | 'Friends' | 'Future Tech' | 'Specials';
+  category: 'Kitchen' | 'Crew' | 'Food Tech' | 'Specials';
   icon: string;
   emoji: string;
   description: string;
@@ -20,7 +20,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'fan_token',
     name: 'Gold Burger',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🍔',
     emoji: '🍔',
     description: 'Juicy flame-grilled burger generating steady Yasir Fest dividends.',
@@ -34,7 +34,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'staking_pool',
     name: 'Cheese Pizza',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🍕',
     emoji: '🍕',
     description: 'Wood-fired molten cheese pizza boosting hourly earnings.',
@@ -50,7 +50,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'dex_listing',
     name: 'Crispy Fries',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🍟',
     emoji: '🍟',
     description: 'Golden salted potato fries loved by all crypto foodies.',
@@ -66,7 +66,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'margin_trading',
     name: 'Taco Feast',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🌮',
     emoji: '🌮',
     description: 'Spicy Mexican taco wrap delivering high-yield crunch.',
@@ -82,7 +82,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'dress_up_camera',
     name: 'Donut Glaze',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🍩',
     emoji: '🍩',
     description: 'Sweet strawberry glazed donuts fueling high-roller kitchens.',
@@ -98,7 +98,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'hot_dog',
     name: 'Hot Dog',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🌭',
     emoji: '🌭',
     description: 'Classic gourmet hot dog packed with savory goodness.',
@@ -114,7 +114,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'hopter_boost',
     name: 'Waffle Stack',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🧇',
     emoji: '🧇',
     description: 'Honey-dripped crispy waffles boosting kitchen momentum.',
@@ -130,7 +130,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'choco_bar',
     name: 'Choco Bar',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🍫',
     emoji: '🍫',
     description: 'Rich dark Belgian chocolate bar running automated returns.',
@@ -146,7 +146,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'gourmet_tablecloth',
     name: 'Boba Tea',
-    category: 'Gadgets',
+    category: 'Kitchen',
     icon: '🧋',
     emoji: '🧋',
     description: 'Refreshing boba milk tea keeping chef stamina at peak levels.',
@@ -164,7 +164,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'telegram_channel',
     name: 'Master Chef',
-    category: 'Friends',
+    category: 'Crew',
     icon: '👨‍🍳',
     emoji: '👨‍🍳',
     description: 'Expert culinary captain directing all line operations.',
@@ -178,7 +178,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'influencer_collab',
     name: 'Grill Bot',
-    category: 'Friends',
+    category: 'Crew',
     icon: '🤖',
     emoji: '🤖',
     description: 'Automated AI grill assistant cooking burgers to perfection.',
@@ -194,7 +194,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'meme_campaign',
     name: 'Waiter Drone',
-    category: 'Friends',
+    category: 'Crew',
     icon: '🛸',
     emoji: '🛸',
     description: 'High-speed aerial delivery drone serving VIP diners.',
@@ -210,7 +210,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'podcast',
     name: 'Delivery Boy',
-    category: 'Friends',
+    category: 'Crew',
     icon: '🛵',
     emoji: '🛵',
     description: 'Lightning-fast courier rushing hot meals across the city.',
@@ -226,7 +226,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'cashier_ai',
     name: 'Cashier AI',
-    category: 'Friends',
+    category: 'Crew',
     icon: '💻',
     emoji: '💻',
     description: 'Intelligent POS terminal optimizing profit calculations.',
@@ -242,7 +242,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'recipe_guru',
     name: 'Recipe Guru',
-    category: 'Friends',
+    category: 'Crew',
     icon: '📜',
     emoji: '📜',
     description: 'Mastermind food scholar inventing legendary fusion dishes.',
@@ -258,7 +258,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'food_critic',
     name: 'Food Critic',
-    category: 'Friends',
+    category: 'Crew',
     icon: '🧐',
     emoji: '🧐',
     description: '5-star food reviews creating viral customer hype.',
@@ -274,7 +274,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'sensei_class',
     name: 'Safety Guard',
-    category: 'Friends',
+    category: 'Crew',
     icon: '🛡️',
     emoji: '🛡️',
     description: 'Strict kitchen discipline keeping uptime at 99.9%.',
@@ -290,7 +290,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'vip_butler',
     name: 'VIP Butler',
-    category: 'Friends',
+    category: 'Crew',
     icon: '🤵',
     emoji: '🤵',
     description: 'Elite hospitality concierge catering to billionaire patrons.',
@@ -308,7 +308,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'cloud_nodes',
     name: 'Smart Oven',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '♨️',
     emoji: '♨️',
     description: 'High-precision digital oven baking batches at 10x speed.',
@@ -322,7 +322,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'small_light',
     name: 'Blast Freezer',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '❄️',
     emoji: '❄️',
     description: 'Sub-zero rapid freezer preserving ingredients at peak freshness.',
@@ -338,7 +338,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'security_audit',
     name: 'Auto Fryer',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '🍳',
     emoji: '🍳',
     description: 'Automated oil bath frying golden crispy appetizers.',
@@ -354,7 +354,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'ai_bot',
     name: 'Juice Press',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '🧃',
     emoji: '🧃',
     description: 'Cold-pressed extractor squeezing fresh organic juices.',
@@ -368,7 +368,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'shock_gun',
     name: 'Solar Grill',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '☀️',
     emoji: '☀️',
     description: 'Solar thermal BBQ searing steaks with clean energy.',
@@ -384,7 +384,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'ton_bridge',
     name: 'Spice Lab',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '🌶️',
     emoji: '🌶️',
     description: 'Molecular spice synthesizer blending exotic flavors.',
@@ -400,7 +400,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'copy_robot',
     name: '3D Food Rig',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '🖨️',
     emoji: '🖨️',
     description: '3D bio-printer fabricating intricate culinary delicacies.',
@@ -416,7 +416,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'weather_box',
     name: 'Steam Boiler',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '💨',
     emoji: '💨',
     description: 'Industrial steam station cooking dim sums and delicate soups.',
@@ -432,7 +432,7 @@ export const MINING_CARDS: MiningCardDef[] = [
   {
     id: 'dream_director',
     name: 'Hydro Farm',
-    category: 'Future Tech',
+    category: 'Food Tech',
     icon: '🥬',
     emoji: '🥬',
     description: 'Vertical aeroponic greenhouse growing crisp organic greens.',
@@ -633,7 +633,7 @@ export function autoCalculateCardMetrics(raw: {
   name: string;
   icon: string;
   baseCost: number;
-  category?: 'Gadgets' | 'Friends' | 'Future Tech' | 'Specials';
+  category?: 'Kitchen' | 'Crew' | 'Food Tech' | 'Specials';
   emoji?: string;
   description?: string;
   costMult?: number;
@@ -646,7 +646,7 @@ export function autoCalculateCardMetrics(raw: {
   active?: boolean;
 }): MiningCardDef & { active?: boolean } {
   const baseCost = Math.max(10, Math.floor(Number(raw.baseCost || 100)));
-  const category = raw.category || 'Gadgets';
+  const category = raw.category || 'Kitchen';
   
   // 1. Auto-assign Cost Multiplier (Exponential Growth 1.60x - 1.78x)
   let costMult = raw.costMult;
@@ -701,9 +701,9 @@ export function autoCalculateCardMetrics(raw: {
 
   // 6. Category Default Emojis
   const categoryEmojis: Record<string, string> = {
-    Gadgets: '🍔',
-    Friends: '👨‍🍳',
-    'Future Tech': '♨️',
+    Kitchen: '🍔',
+    Crew: '👨‍🍳',
+    'Food Tech': '♨️',
     Specials: '👑',
   };
 

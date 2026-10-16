@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     const taskData = {
       ...validatedData.data,
-      active: true,
+      active: validatedData.data.active ?? true,
       createdAt: new Date(),
       updatedAt: new Date()
     };

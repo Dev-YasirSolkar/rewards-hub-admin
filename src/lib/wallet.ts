@@ -54,7 +54,7 @@ export async function createTransaction(input: CreateTransactionInput): Promise<
     if (!userDoc.exists) throw new Error('User not found');
 
     const userData = userDoc.data()!;
-    const balanceBefore = Number(userData.pointsBalance || 0);
+    const balanceBefore = userData.coins !== undefined ? Number(userData.coins) : Number(userData.pointsBalance || 0);
     const balanceAfter = balanceBefore + amount;
 
     if (balanceAfter < 0) throw new Error('Insufficient balance');

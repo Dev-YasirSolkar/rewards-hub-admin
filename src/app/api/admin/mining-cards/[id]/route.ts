@@ -49,7 +49,7 @@ export async function PUT(
       name: name || existing.name || id,
       icon: icon || existing.icon || '🍔',
       baseCost: baseCost !== undefined ? Number(baseCost) : (existing.baseCost || 100),
-      category: category || existing.category || 'Gadgets',
+      category: category || existing.category || 'Kitchen',
       emoji: emoji || existing.emoji,
       description: description || existing.description,
       active: active !== undefined ? Boolean(active) : (existing as any).active !== false,

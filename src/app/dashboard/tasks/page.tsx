@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { adminFetch } from '@/lib/admin-client';
 
 interface Task {
@@ -12,23 +12,31 @@ interface Task {
   taskType: string;
   targetUrl?: string;
   verificationType?: string;
+  order?: number;
+  isRecurring?: boolean;
   active: boolean;
   createdAt?: any;
 }
 
 const TASK_TYPES = [
-  { value: 'telegram_channel', label: 'Telegram Channel' },
-  { value: 'telegram_group', label: 'Telegram Group' },
-  { value: 'website_visit', label: 'Website Visit' },
-  { value: 'social_follow', label: 'Social Follow' },
-  { value: 'custom', label: 'Custom / Other' },
-  { value: 'promotional', label: 'Promotional' },
-  { value: 'affiliate', label: 'Affiliate' },
+  { value: 'telegram_channel', label: 'Telegram Channel', defaultIcon: '📢' },
+  { value: 'telegram_group', label: 'Telegram Group', defaultIcon: '💬' },
+  { value: 'website_visit', label: 'Website Visit', defaultIcon: '🌐' },
+  { value: 'social_follow', label: 'Social Follow (Twitter/Insta)', defaultIcon: '🐦' },
+  { value: 'social', label: 'Social Media Quest', defaultIcon: '📱' },
+  { value: 'promotional', label: 'Promotional Task', defaultIcon: '🎁' },
+  { value: 'affiliate', label: 'Affiliate Partner', defaultIcon: '🤝' },
+  { value: 'custom', label: 'Custom / Other', defaultIcon: '⚡' },
 ];
+
+const PRESET_ICONS = ['📢', '💬', '🌐', '🐦', '📸', '📺', '🎁', '⚡', '🔥', '💎', '🚀', '⭐'];
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'telegram' | 'social' | 'recurring' | 'inactive'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -37,10 +45,13 @@ export default function TasksPage() {
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [icon, setIcon] = useState('📢');
   const [taskType, setTaskType] = useState('telegram_channel');
   const [targetUrl, setTargetUrl] = useState('');
-  const [reward, setReward] = useState('50');
+  const [reward, setReward] = useState('5000');
   const [verificationType, setVerificationType] = useState('manual');
+  const [order, setOrder] = useState('1');
+  const [isRecurring, setIsRecurring] = useState(false);
   const [active, setActive] = useState(true);
 
   useEffect(() => {
@@ -50,7 +61,7 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      const res = await adminFetch('/api/admin/tasks');
+      const res = await adminFetch('/api/admin/tasks?refresh=true');
       if (res.success && res.data) {
         setTasks(Array.isArray(res.data) ? res.data : (res.data as any).tasks || []);
       }
@@ -60,14 +71,25 @@ export default function TasksPage() {
     setLoading(false);
   };
 
+  const handleTypeChange = (newType: string) => {
+    setTaskType(newType);
+    const matched = TASK_TYPES.find(t => t.value === newType);
+    if (matched && (!icon || PRESET_ICONS.includes(icon))) {
+      setIcon(matched.defaultIcon);
+    }
+  };
+
   const openCreateModal = () => {
     setEditingTask(null);
     setTitle('');
     setDescription('');
+    setIcon('📢');
     setTaskType('telegram_channel');
     setTargetUrl('');
-    setReward('50');
+    setReward('5000');
     setVerificationType('manual');
+    setOrder((tasks.length + 1).toString());
+    setIsRecurring(false);
     setActive(true);
     setMessage(null);
     setShowModal(true);
@@ -77,10 +99,13 @@ export default function TasksPage() {
     setEditingTask(task);
     setTitle(task.title || '');
     setDescription(task.description || '');
+    setIcon(task.icon || '⚡');
     setTaskType(task.taskType || 'telegram_channel');
     setTargetUrl(task.targetUrl || '');
-    setReward(task.reward?.toString() || '50');
+    setReward(task.reward?.toString() || '5000');
     setVerificationType(task.verificationType || 'manual');
+    setOrder(task.order?.toString() || '1');
+    setIsRecurring(Boolean(task.isRecurring));
     setActive(task.active ?? true);
     setMessage(null);
     setShowModal(true);
@@ -99,11 +124,17 @@ export default function TasksPage() {
       return;
     }
 
-    if (targetUrl.trim()) {
+    let cleanUrl = targetUrl.trim();
+    if (cleanUrl) {
+      if (cleanUrl.startsWith('@')) {
+        cleanUrl = `https://t.me/${cleanUrl.slice(1)}`;
+      } else if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+        cleanUrl = `https://${cleanUrl}`;
+      }
       try {
-        new URL(targetUrl.trim());
+        new URL(cleanUrl);
       } catch {
-        setMessage({ type: 'error', text: 'Target URL must be a valid URL (e.g. https://t.me/yourchannel)' });
+        setMessage({ type: 'error', text: 'Target URL must be a valid URL (e.g. https://t.me/yourchannel or @channel)' });
         return;
       }
     }
@@ -114,15 +145,15 @@ export default function TasksPage() {
     const payload: any = {
       title: title.trim(),
       description: description.trim() || undefined,
+      icon: icon.trim() || undefined,
       taskType,
       reward: rewardNum,
       verificationType,
+      order: parseInt(order, 10) || 1,
+      isRecurring,
       active,
+      targetUrl: cleanUrl || '',
     };
-
-    if (targetUrl.trim()) {
-      payload.targetUrl = targetUrl.trim();
-    }
 
     try {
       let res;
@@ -181,6 +212,34 @@ export default function TasksPage() {
     }
   };
 
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(t => {
+      // Search query filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesTitle = t.title?.toLowerCase().includes(q);
+        const matchesDesc = t.description?.toLowerCase().includes(q);
+        const matchesType = t.taskType?.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesDesc && !matchesType) return false;
+      }
+
+      // Tab filter
+      if (filter === 'telegram') {
+        return t.taskType === 'telegram' || t.taskType.startsWith('telegram_');
+      }
+      if (filter === 'social') {
+        return ['social', 'social_follow', 'website_visit', 'promotional', 'affiliate', 'custom'].includes(t.taskType);
+      }
+      if (filter === 'recurring') {
+        return Boolean(t.isRecurring);
+      }
+      if (filter === 'inactive') {
+        return !t.active;
+      }
+      return true;
+    }).sort((a, b) => (a.order || 999) - (b.order || 999));
+  }, [tasks, filter, searchQuery]);
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -195,6 +254,96 @@ export default function TasksPage() {
         </button>
       </div>
 
+      {/* Filter Tabs & Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setFilter('all')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: '1px solid #30363d',
+              background: filter === 'all' ? '#1f6feb' : '#21262d',
+              color: filter === 'all' ? '#ffffff' : '#c9d1d9',
+            }}
+          >
+            All Quests ({tasks.length})
+          </button>
+          <button
+            onClick={() => setFilter('telegram')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: '1px solid #30363d',
+              background: filter === 'telegram' ? '#1f6feb' : '#21262d',
+              color: filter === 'telegram' ? '#ffffff' : '#c9d1d9',
+            }}
+          >
+            📢 Telegram ({tasks.filter(t => t.taskType === 'telegram' || t.taskType?.startsWith('telegram_')).length})
+          </button>
+          <button
+            onClick={() => setFilter('social')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: '1px solid #30363d',
+              background: filter === 'social' ? '#1f6feb' : '#21262d',
+              color: filter === 'social' ? '#ffffff' : '#c9d1d9',
+            }}
+          >
+            📱 Social ({tasks.filter(t => ['social', 'social_follow', 'website_visit', 'promotional', 'affiliate', 'custom'].includes(t.taskType)).length})
+          </button>
+          <button
+            onClick={() => setFilter('recurring')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: '1px solid #30363d',
+              background: filter === 'recurring' ? '#1f6feb' : '#21262d',
+              color: filter === 'recurring' ? '#ffffff' : '#c9d1d9',
+            }}
+          >
+            🔄 Daily ({tasks.filter(t => t.isRecurring).length})
+          </button>
+          <button
+            onClick={() => setFilter('inactive')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: '1px solid #30363d',
+              background: filter === 'inactive' ? '#da3633' : '#21262d',
+              color: filter === 'inactive' ? '#ffffff' : '#c9d1d9',
+            }}
+          >
+            Inactive ({tasks.filter(t => !t.active).length})
+          </button>
+        </div>
+
+        <input
+          type="text"
+          placeholder="🔍 Search quests..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="admin-input"
+          style={{ width: '220px', marginBottom: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+        />
+      </div>
+
       <div className="admin-card admin-table-container">
         {loading ? (
           <div style={{ padding: '20px 16px' }}>
@@ -207,6 +356,7 @@ export default function TasksPage() {
           <table className="admin-table">
             <thead>
               <tr>
+                <th style={{ width: '48px' }}>Order</th>
                 <th>Task</th>
                 <th>Type</th>
                 <th>Target URL</th>
@@ -216,22 +366,60 @@ export default function TasksPage() {
               </tr>
             </thead>
             <tbody>
-              {tasks.length === 0 ? (
+              {filteredTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#8b949e' }}>
-                    No tasks found. Click &quot;Create New Task&quot; to add your first earning task!
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#8b949e' }}>
+                    No tasks found matching filter. Click &quot;Create New Task&quot; to add one!
                   </td>
                 </tr>
               ) : (
-                tasks.map(task => (
+                filteredTasks.map(task => (
                   <tr key={task.id}>
                     <td>
-                      <div style={{ fontWeight: 600, color: '#f0f6fc' }}>{task.title}</div>
-                      {task.description && (
-                        <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '2px', maxWidth: '280px' }}>
-                          {task.description}
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 6px',
+                        background: '#161b22',
+                        border: '1px solid #30363d',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: '#8b949e',
+                      }}>
+                        #{task.order || 1}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          fontSize: '1.25rem',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: '#21262d',
+                          borderRadius: '8px',
+                          flexShrink: 0,
+                        }}>
+                          {task.icon || '⚡'}
                         </div>
-                      )}
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#f0f6fc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>{task.title}</span>
+                            {task.isRecurring && (
+                              <span style={{ fontSize: '0.65rem', padding: '1px 5px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontWeight: 700 }}>
+                                🔄 Daily
+                              </span>
+                            )}
+                          </div>
+                          {task.description && (
+                            <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '2px', maxWidth: '280px' }}>
+                              {task.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td>
                       <span style={{
@@ -261,7 +449,7 @@ export default function TasksPage() {
                       )}
                     </td>
                     <td>
-                      <span style={{ color: '#e3b341', fontWeight: 600 }}>+{task.reward} pts</span>
+                      <span style={{ color: '#e3b341', fontWeight: 700 }}>+{task.reward?.toLocaleString()} pts</span>
                     </td>
                     <td>
                       <button
@@ -339,9 +527,9 @@ export default function TasksPage() {
           <div style={{
             background: '#161a22',
             border: '1px solid #30363d',
-            borderRadius: '8px',
+            borderRadius: '12px',
             width: '100%',
-            maxWidth: '520px',
+            maxWidth: '560px',
             padding: '1.5rem',
             maxHeight: '90vh',
             overflowY: 'auto',
@@ -373,6 +561,7 @@ export default function TasksPage() {
             )}
 
             <form onSubmit={handleSubmit}>
+              {/* Task Title */}
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
                   Task Title *
@@ -388,6 +577,43 @@ export default function TasksPage() {
                 />
               </div>
 
+              {/* Icon Selector with Quick Presets */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
+                  Task Icon (Emoji or Icon)
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="e.g. 📢, 🌐, 🚀"
+                    value={icon}
+                    onChange={e => setIcon(e.target.value)}
+                    className="admin-input"
+                    style={{ width: '80px', textAlign: 'center', fontSize: '1.25rem', marginBottom: 0 }}
+                  />
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', flex: 1 }}>
+                    {PRESET_ICONS.map(p => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setIcon(p)}
+                        style={{
+                          background: icon === p ? '#1f6feb' : '#21262d',
+                          border: '1px solid #30363d',
+                          borderRadius: '6px',
+                          padding: '4px 8px',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                        }}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
                   Description (Optional)
@@ -397,10 +623,11 @@ export default function TasksPage() {
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   className="admin-input"
-                  style={{ marginBottom: 0, minHeight: '60px', resize: 'vertical' }}
+                  style={{ marginBottom: 0, minHeight: '54px', resize: 'vertical' }}
                 />
               </div>
 
+              {/* Task Type & Reward */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
@@ -408,7 +635,7 @@ export default function TasksPage() {
                   </label>
                   <select
                     value={taskType}
-                    onChange={e => setTaskType(e.target.value)}
+                    onChange={e => handleTypeChange(e.target.value)}
                     className="admin-input"
                     style={{ marginBottom: 0 }}
                   >
@@ -434,24 +661,29 @@ export default function TasksPage() {
                 </div>
               </div>
 
+              {/* Target URL */}
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
                   Target URL (Link to join or visit)
                 </label>
                 <input
-                  type="url"
-                  placeholder="https://t.me/YourChannelName"
+                  type="text"
+                  placeholder="https://t.me/YourChannel or @YourChannel"
                   value={targetUrl}
                   onChange={e => setTargetUrl(e.target.value)}
                   className="admin-input"
                   style={{ marginBottom: 0 }}
                 />
+                <span style={{ fontSize: '0.75rem', color: '#6e7681', marginTop: '4px', display: 'block' }}>
+                  Supports @channelName (auto-formatted to https://t.me/channelName)
+                </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+              {/* Verification & Display Order */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
-                    Verification
+                    Verification Method
                   </label>
                   <select
                     value={verificationType}
@@ -459,22 +691,49 @@ export default function TasksPage() {
                     className="admin-input"
                     style={{ marginBottom: 0 }}
                   >
-                    <option value="manual">Manual Verify Button</option>
-                    <option value="auto">Auto Verify</option>
+                    <option value="manual">Manual Verify Button (Timer)</option>
+                    <option value="auto">Auto Verify (Instant on click)</option>
+                    <option value="telegram">Telegram Membership Check</option>
                   </select>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', paddingTop: '1.25rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#c9d1d9', fontSize: '0.875rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={e => setActive(e.target.checked)}
-                      style={{ width: '16px', height: '16px' }}
-                    />
-                    Active (Visible to users)
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
+                    Display Order (Priority)
                   </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    value={order}
+                    onChange={e => setOrder(e.target.value)}
+                    className="admin-input"
+                    style={{ marginBottom: 0 }}
+                  />
                 </div>
+              </div>
+
+              {/* Toggles: Recurring & Active */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem', background: '#0d1117', padding: '12px', borderRadius: '8px', border: '1px solid #30363d' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#c9d1d9', fontSize: '0.85rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={e => setIsRecurring(e.target.checked)}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                  <span>🔄 Daily Quest (Repeatable every 24h)</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#c9d1d9', fontSize: '0.85rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={e => setActive(e.target.checked)}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                  <span>Visible to Users (Active)</span>
+                </label>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -508,4 +767,3 @@ export default function TasksPage() {
     </div>
   );
 }
-

@@ -17,7 +17,7 @@ export const taskCreateSchema = z.object({
     'social'
   ]).default('custom'),
   targetUrl: z.string().optional().or(z.literal('')),
-  verificationType: z.enum(['auto', 'manual', 'callback']).default('manual'),
+  verificationType: z.enum(['auto', 'manual', 'callback', 'telegram']).default('manual'),
   dailyLimit: z.number().int().positive().optional(),
   totalLimit: z.number().int().positive().optional(),
   order: z.number().int().optional().default(1),

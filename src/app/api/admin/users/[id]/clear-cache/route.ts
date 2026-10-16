@@ -39,7 +39,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const newCacheVersion = Date.now();
     await userRef.update({
       cacheVersion: newCacheVersion,
-      energyPerSecond: 1,
+      energyPerSecond: 2,
       lastEnergyAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
