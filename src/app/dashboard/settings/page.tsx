@@ -41,6 +41,33 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [clearingCache, setClearingCache] = useState(false);
+  const [cacheMessage, setCacheMessage] = useState('');
+
+  const handleClearAllUsersCache = async () => {
+    const confirmed = window.confirm(
+      '⚠️ Are you sure you want to delete and wipe caches for ALL users across the entire system?\n\nThis will force all user devices across Telegram to wipe their cached balances, local taps, and configurations, and reload fresh state from the database.'
+    );
+    if (!confirmed) return;
+
+    setClearingCache(true);
+    setCacheMessage('');
+    try {
+      const res = await adminFetch('/api/admin/cache-invalidate', {
+        method: 'POST',
+        body: JSON.stringify({ target: 'all' }),
+      });
+      if (res.success) {
+        setCacheMessage('✅ All users cache successfully invalidated and wiped!');
+      } else {
+        setCacheMessage(`❌ ${res.error || 'Failed to invalidate cache'}`);
+      }
+    } catch (e: any) {
+      setCacheMessage(`❌ Error: ${e.message || 'Network error'}`);
+    } finally {
+      setClearingCache(false);
+    }
+  };
 
   useEffect(() => {
     fetchSettings();
@@ -168,6 +195,55 @@ export default function SettingsPage() {
           {saveMessage}
         </div>
       )}
+
+      {/* Global Cache Invalidation Card */}
+      <div
+        className="admin-card"
+        style={{
+          border: '1.5px solid rgba(239, 68, 68, 0.4)',
+          background: 'linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%)',
+          marginBottom: '20px',
+          borderRadius: '16px',
+          padding: '20px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, margin: '0 0 6px', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>🗑️</span> Global Cache Invalidation (All Users)
+            </h3>
+            <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0, maxWidth: '680px', lineHeight: 1.5 }}>
+              Purge server memory caches and increment the system-wide cache version. All active user devices across Telegram will instantly wipe their local storage cache (stored balances, pending taps, cards) on their next interaction and re-fetch fresh authoritative state from Firestore.
+            </p>
+            {cacheMessage && (
+              <p style={{ margin: '8px 0 0', fontSize: '13px', fontWeight: 700, color: cacheMessage.startsWith('✅') ? '#34d399' : '#f87171' }}>
+                {cacheMessage}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="admin-button"
+            disabled={clearingCache}
+            onClick={handleClearAllUsersCache}
+            style={{
+              background: clearingCache ? 'rgba(239, 68, 68, 0.5)' : '#ef4444',
+              color: '#ffffff',
+              fontWeight: 900,
+              padding: '12px 24px',
+              borderRadius: '10px',
+              border: 'none',
+              cursor: clearingCache ? 'not-allowed' : 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
+              fontSize: '13px',
+            }}
+          >
+            {clearingCache ? 'Wiping Cache...' : '🗑️ Wipe All Users Cache'}
+          </button>
+        </div>
+      </div>
 
       {/* 1. Daily Check-in Streak Rewards */}
       <div className="admin-card" style={{ marginBottom: '20px' }}>

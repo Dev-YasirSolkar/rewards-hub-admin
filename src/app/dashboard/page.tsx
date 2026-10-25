@@ -8,6 +8,31 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [clearingCache, setClearingCache] = useState(false);
+
+  const handleClearAllUsersCache = async () => {
+    const confirmed = window.confirm(
+      '⚠️ Are you sure you want to delete and wipe caches for ALL users across the entire system?\n\nThis will force all user devices across Telegram to wipe their cached balances, local taps, and configurations, and reload fresh state from the database.'
+    );
+    if (!confirmed) return;
+
+    setClearingCache(true);
+    try {
+      const res = await adminFetch('/api/admin/cache-invalidate', {
+        method: 'POST',
+        body: JSON.stringify({ target: 'all' }),
+      });
+      if (res.success) {
+        alert('✅ All users cache successfully invalidated and wiped!');
+      } else {
+        alert(`❌ ${res.error || 'Failed to invalidate cache'}`);
+      }
+    } catch (e: any) {
+      alert(`❌ Error: ${e.message || 'Network error'}`);
+    } finally {
+      setClearingCache(false);
+    }
+  };
 
   const fetchStats = async (force: boolean = false) => {
     setLoading(true);
@@ -141,13 +166,30 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <button
-          className="admin-button"
-          onClick={() => fetchStats(true)}
-          style={{ padding: '8px 16px', fontSize: '13px' }}
-        >
-          ↻ Refresh Node Stats
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            className="admin-button"
+            onClick={handleClearAllUsersCache}
+            disabled={clearingCache}
+            style={{
+              padding: '8px 16px',
+              fontSize: '13px',
+              background: clearingCache ? 'rgba(239, 68, 68, 0.5)' : '#ef4444',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 800,
+            }}
+          >
+            {clearingCache ? 'Wiping Cache...' : '🗑️ Wipe All Users Cache'}
+          </button>
+          <button
+            className="admin-button"
+            onClick={() => fetchStats(true)}
+            style={{ padding: '8px 16px', fontSize: '13px' }}
+          >
+            ↻ Refresh Node Stats
+          </button>
+        </div>
       </div>
 
       {/* ── LUMINOUS KPI GRID ────────────────────────────────────────────── */}
