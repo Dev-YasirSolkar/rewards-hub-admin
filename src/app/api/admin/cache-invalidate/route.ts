@@ -32,6 +32,20 @@ export async function POST(request: Request) {
         updatedAt: new Date(),
       }, { merge: true });
 
+      // 3. Also update users in collection to ensure user-level cacheVersion is synchronized
+      try {
+        const usersSnap = await adminDb.collection('users').limit(100).get();
+        if (!usersSnap.empty) {
+          const batch = adminDb.batch();
+          usersSnap.docs.forEach((doc) => {
+            batch.update(doc.ref, { cacheVersion: now, updatedAt: new Date() });
+          });
+          await batch.commit().catch(() => {});
+        }
+      } catch (err) {
+        console.warn('Batch update user cacheVersion warning:', err);
+      }
+
       invalidateCache('admin_settings');
       invalidateCache('admin_dashboard');
 
