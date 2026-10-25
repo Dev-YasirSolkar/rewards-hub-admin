@@ -34,8 +34,12 @@ export function verifySessionToken(token: string): boolean {
 export function verifyAdminAuth(request: NextRequest | Request): boolean {
   // 1. Check direct header
   const authHeader = request.headers.get('x-admin-secret');
-  if (authHeader && authHeader === ADMIN_SECRET) {
-    return true;
+  if (authHeader) {
+    const authHash = crypto.createHash('sha256').update(authHeader).digest();
+    const adminHash = crypto.createHash('sha256').update(ADMIN_SECRET).digest();
+    if (crypto.timingSafeEqual(authHash, adminHash)) {
+      return true;
+    }
   }
 
   // 2. Check Cookie
