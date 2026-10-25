@@ -47,7 +47,8 @@ export default function NotificationsPage() {
       });
 
       if (res.success) {
-        alert('Broadcast sent successfully!');
+        const count = res.sentCount ?? res.data?.sentCount ?? 0;
+        alert(`Broadcast completed! Delivered to ${count} user(s).`);
         setTitle('');
         setMessage('');
         fetchHistory();

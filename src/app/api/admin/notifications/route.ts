@@ -76,23 +76,36 @@ export async function POST(request: Request) {
     }
 
     let sentCount = 0;
+    let totalTargeted = 0;
     try {
       let query: any = adminDb.collection('users');
       if (target === 'active') {
         query = query.where('status', '==', 'active');
       }
-      const usersSnap = await query.limit(200).get();
+      let usersSnap = await query.limit(200).get();
+
+      // Fallback if 'active' filter returns empty to avoid missing users
+      if (usersSnap.empty && target === 'active') {
+        usersSnap = await adminDb.collection('users').limit(200).get();
+      }
+
+      totalTargeted = usersSnap.size;
 
       for (const doc of usersSnap.docs) {
         const u = doc.data();
-        const tgId = u.telegramId;
+        const rawId = u.telegramId || doc.id;
+        const tgId = typeof rawId === 'number' ? rawId : (/^\d+$/.test(String(rawId)) ? Number(rawId) : null);
         if (tgId) {
           try {
-            await sendTelegramMessage(tgId, `📢 <b>${title}</b>\n\n${message}`);
-            sentCount++;
+            const delivered = await sendTelegramMessage(tgId, `📢 <b>${title}</b>\n\n${message}`);
+            if (delivered) {
+              sentCount++;
+            }
           } catch (e) {
             console.error('Failed delivering broadcast to user:', tgId, e);
           }
+          // Delay 35ms between sends to stay under Telegram 30 msgs/sec rate limit
+          await new Promise((r) => setTimeout(r, 35));
         }
       }
     } catch (e) {
@@ -104,6 +117,7 @@ export async function POST(request: Request) {
       message,
       target: target || 'all',
       sentCount,
+      totalTargeted,
       createdAt: new Date(),
       createdBy: admin.id,
       status: 'sent',
@@ -114,12 +128,12 @@ export async function POST(request: Request) {
     await createAuditLog({
       performedBy: admin.id,
       action: 'send_broadcast',
-      details: { broadcastId: docRef.id, title, target, sentCount },
+      details: { broadcastId: docRef.id, title, target, sentCount, totalTargeted },
     });
 
     invalidateCache('admin_broadcasts');
 
-    return NextResponse.json({ success: true, data: { id: docRef.id, ...broadcastData } });
+    return NextResponse.json({ success: true, sentCount, totalTargeted, data: { id: docRef.id, ...broadcastData } });
   } catch (error) {
     return serverError(error);
   }
