@@ -690,22 +690,22 @@ export default function TasksPage() {
               {(taskType.includes('telegram') || verificationType === 'telegram') && (
                 <div style={{ marginBottom: '1rem', background: '#0d1117', padding: '12px', borderRadius: '8px', border: '1px solid #1f6feb40' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#58a6ff', marginBottom: '4px', fontWeight: 600 }}>
-                    📢 Telegram Channel / Group ID (Optional if URL has @username)
+                    📢 Channel / Group Username or ID (Leave EMPTY if Target URL has channel username)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. @YourChannel or -1001234567890"
+                    placeholder="e.g. @YourChannel (DO NOT enter bot username)"
                     value={chatId}
                     onChange={e => setChatId(e.target.value)}
                     className="admin-input"
                     style={{ marginBottom: '6px' }}
                   />
                   <div style={{ fontSize: '0.78rem', color: '#8b949e', lineHeight: '1.4' }}>
-                    <span style={{ color: '#f0883e', fontWeight: 600 }}>⚠️ Important for Telegram Verification:</span>
+                    <span style={{ color: '#f0883e', fontWeight: 600 }}>⚠️ Important:</span>
                     <br />
-                    1. Add your Telegram Bot (<strong>@Yasirfestbot</strong>) as an <strong>Administrator</strong> in the channel or group.
+                    • Yaha apne <strong>Channel/Group ka username</strong> daalein (jaise <code>@YasirFeast</code>), bot ka naam nahi!
                     <br />
-                    2. If the channel is private (link starts with <code>+</code> or <code>joinchat</code>), you must enter the numeric Channel ID (e.g. <code>-100...</code>) above so the bot can verify members.
+                    • Apne Telegram Bot (<strong>@Yasirfestbot</strong>) ko is channel/group me <strong>Administrator</strong> banayein taaki members verify ho sakein.
                   </div>
                 </div>
               )}
