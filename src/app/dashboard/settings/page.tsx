@@ -7,6 +7,7 @@ interface AdminSettings {
   dailyCheckinRewards: number[];
   referralEnabled: boolean;
   referralReward: number;
+  referralRewardPremium?: number;
   maxReferralReward?: number;
   withdrawalEnabled: boolean;
   withdrawalMinimum: number;
@@ -17,6 +18,7 @@ interface AdminSettings {
   adReward?: number;
   adDailyLimit?: number;
   adCooldownSeconds?: number;
+  adZoneId?: string;
   spinDailyLimit?: number;
   maintenanceMode?: boolean;
 }
@@ -26,6 +28,7 @@ export default function SettingsPage() {
     dailyCheckinRewards: [500, 1000, 2500, 5000, 15000, 25000, 100000],
     referralEnabled: true,
     referralReward: 5000,
+    referralRewardPremium: 25000,
     withdrawalEnabled: true,
     withdrawalMinimum: 100000,
     withdrawalMaximum: 50000000,
@@ -35,6 +38,7 @@ export default function SettingsPage() {
     adReward: 1000,
     adDailyLimit: 15,
     adCooldownSeconds: 30,
+    adZoneId: '11886923',
     spinDailyLimit: 5,
     maintenanceMode: false,
   });
@@ -85,6 +89,7 @@ export default function SettingsPage() {
             : [500, 1000, 2500, 5000, 15000, 25000, 100000],
           referralEnabled: d.referralEnabled !== false,
           referralReward: Number(d.referralReward ?? 5000),
+          referralRewardPremium: Number(d.referralRewardPremium ?? 25000),
           maxReferralReward: d.maxReferralReward ? Number(d.maxReferralReward) : undefined,
           withdrawalEnabled: d.withdrawalEnabled !== false,
           withdrawalMinimum: Number(d.withdrawalMinimum ?? d.minWithdrawal ?? 100000),
@@ -95,6 +100,7 @@ export default function SettingsPage() {
           adReward: Number(d.adReward ?? 1000),
           adDailyLimit: Number(d.adDailyLimit ?? 15),
           adCooldownSeconds: Number(d.adCooldownSeconds ?? 30),
+          adZoneId: String(d.adZoneId || '11886923'),
           spinDailyLimit: Number(d.spinDailyLimit ?? 5),
           maintenanceMode: Boolean(d.maintenanceMode),
         });
@@ -119,6 +125,7 @@ export default function SettingsPage() {
         dailyCheckinRewards: settings.dailyCheckinRewards.map(Number),
         referralEnabled: Boolean(settings.referralEnabled),
         referralReward: Number(settings.referralReward),
+        referralRewardPremium: Number(settings.referralRewardPremium ?? 25000),
         withdrawalEnabled: Boolean(settings.withdrawalEnabled),
         withdrawalMinimum: Number(settings.withdrawalMinimum),
         withdrawalMaximum: Number(settings.withdrawalMaximum || 50000000),
@@ -128,6 +135,7 @@ export default function SettingsPage() {
         adReward: Number(settings.adReward || 1000),
         adDailyLimit: Number(settings.adDailyLimit || 15),
         adCooldownSeconds: Number(settings.adCooldownSeconds || 30),
+        adZoneId: String(settings.adZoneId || '11886923'),
         spinDailyLimit: Number(settings.spinDailyLimit || 5),
         maintenanceMode: Boolean(settings.maintenanceMode),
       };
@@ -339,6 +347,17 @@ export default function SettingsPage() {
               min="0"
             />
           </div>
+
+          <div>
+            <label className="admin-label">Monetag Zone ID / Ad Tag</label>
+            <input
+              type="text"
+              className="admin-input"
+              value={settings.adZoneId ?? '11886923'}
+              onChange={(e) => setSettings({ ...settings, adZoneId: e.target.value })}
+              placeholder="11886923"
+            />
+          </div>
         </div>
       </div>
 
@@ -371,7 +390,22 @@ export default function SettingsPage() {
               step="500"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Awarded to the inviter when a new friend joins via their referral link.
+              Awarded to the inviter when a new regular friend joins via their referral link.
+            </p>
+          </div>
+
+          <div className="admin-form-group">
+            <label className="admin-label">Reward Per Telegram Premium Referral ($SOLK 🌟)</label>
+            <input
+              type="number"
+              className="admin-input"
+              value={settings.referralRewardPremium ?? 25000}
+              onChange={(e) => setSettings({ ...settings, referralRewardPremium: Number(e.target.value) })}
+              min="0"
+              step="1000"
+            />
+            <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
+              Awarded when a friend with Telegram Premium joins via the referral link.
             </p>
           </div>
 
