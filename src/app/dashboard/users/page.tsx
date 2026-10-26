@@ -234,12 +234,12 @@ export default function UsersPage() {
                       </td>
                       <td>
                         <span style={{ fontWeight: 800, color: '#f59e0b' }}>
-                          {(user.pointsBalance ?? user.coins ?? 0).toLocaleString()} 🥞
+                          {Math.floor(Number(user.pointsBalance ?? user.coins ?? 0)).toLocaleString()} 🥞
                         </span>
                       </td>
                       <td>
                         <span style={{ fontWeight: 700, color: '#34d399' }}>
-                          +{(user.profitPerHour || 0).toLocaleString()}/h
+                          +{Math.floor(Number(user.profitPerHour || 0)).toLocaleString()}/h
                         </span>
                       </td>
                       <td>

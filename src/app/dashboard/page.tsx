@@ -89,47 +89,51 @@ export default function AdminDashboard() {
     );
   }
 
+  const formatInt = (val: any) => Math.floor(Number(val) || 0).toLocaleString();
+
   const pendingWithdrawalsCount =
     typeof stats?.pendingWithdrawals === 'object'
-      ? stats.pendingWithdrawals?.count ?? 0
-      : stats?.pendingWithdrawals ?? 0;
+      ? Math.floor(Number(stats.pendingWithdrawals?.count) || 0)
+      : Math.floor(Number(stats?.pendingWithdrawals) || 0);
   const pendingWithdrawalsSum =
-    typeof stats?.pendingWithdrawals === 'object' ? stats.pendingWithdrawals?.sum ?? 0 : 0;
+    typeof stats?.pendingWithdrawals === 'object' ? Math.floor(Number(stats.pendingWithdrawals?.sum) || 0) : 0;
 
   const paidWithdrawalsCount =
     typeof stats?.paidWithdrawals === 'object'
-      ? stats.paidWithdrawals?.count ?? 0
-      : stats?.paidWithdrawals ?? 0;
+      ? Math.floor(Number(stats.paidWithdrawals?.count) || 0)
+      : Math.floor(Number(stats?.paidWithdrawals) || 0);
   const paidWithdrawalsSum =
-    typeof stats?.paidWithdrawals === 'object' ? stats.paidWithdrawals?.sum ?? 0 : 0;
+    typeof stats?.paidWithdrawals === 'object' ? Math.floor(Number(stats.paidWithdrawals?.sum) || 0) : 0;
+
+  const solkInCirculation = Math.floor(Number(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0) || 0);
 
   const statItems = [
-    { label: 'Total Registered Chefs', value: (stats?.totalUsers ?? 0).toLocaleString(), icon: '👨‍🍳', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
-    { label: 'Active 24h Chefs', value: (stats?.activeUsers ?? 0).toLocaleString(), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
-    { label: 'New Chefs Today', value: (stats?.newUsersToday ?? stats?.newToday ?? 0).toLocaleString(), icon: '✨', color: '#F59E0B', aura: 'rgba(245, 158, 11, 0.25)' },
+    { label: 'Total Registered Chefs', value: formatInt(stats?.totalUsers), icon: '👨‍🍳', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
+    { label: 'Active 24h Chefs', value: formatInt(stats?.activeUsers), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
+    { label: 'New Chefs Today', value: formatInt(stats?.newUsersToday ?? stats?.newToday), icon: '✨', color: '#F59E0B', aura: 'rgba(245, 158, 11, 0.25)' },
     {
       label: '$SOLK In Circulation',
-      value: `${(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0).toLocaleString()} $SOLK`,
+      value: `${formatInt(solkInCirculation)} $SOLK`,
       icon: '💰',
       color: '#FDE047',
       aura: 'rgba(253, 224, 71, 0.25)'
     },
     {
       label: 'Pending Payouts',
-      value: `${pendingWithdrawalsCount} (${pendingWithdrawalsSum.toLocaleString()} $SOLK)`,
+      value: `${formatInt(pendingWithdrawalsCount)} (${formatInt(pendingWithdrawalsSum)} $SOLK)`,
       icon: '⏳',
       color: '#F87171',
       aura: 'rgba(248, 113, 113, 0.25)'
     },
     {
       label: 'Settled Payouts',
-      value: `${paidWithdrawalsCount} (${paidWithdrawalsSum.toLocaleString()} $SOLK)`,
+      value: `${formatInt(paidWithdrawalsCount)} (${formatInt(paidWithdrawalsSum)} $SOLK)`,
       icon: '✅',
       color: '#10B981',
       aura: 'rgba(16, 185, 129, 0.25)'
     },
-    { label: 'Active Quests', value: (stats?.activeTasks ?? 0).toLocaleString(), icon: '📋', color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
-    { label: 'Quest Claims Today', value: (stats?.taskCompletionsToday ?? 0).toLocaleString(), icon: '🎯', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
+    { label: 'Active Quests', value: formatInt(stats?.activeTasks), icon: '📋', color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
+    { label: 'Quest Claims Today', value: formatInt(stats?.taskCompletionsToday), icon: '🎯', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
   ];
 
   return (

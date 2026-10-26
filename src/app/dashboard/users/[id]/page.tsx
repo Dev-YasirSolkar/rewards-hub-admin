@@ -261,10 +261,10 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         <div className="admin-card" style={{ margin: 0 }}>
           <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CURRENT $SOLK BALANCE</div>
           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f59e0b', marginTop: '4px' }}>
-            {(user.coins ?? user.pointsBalance ?? 0).toLocaleString()} $SOLK
+            {Math.floor(Number(user.coins ?? user.pointsBalance ?? 0)).toLocaleString()} $SOLK
           </div>
           <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
-            Lifetime Earned: {(user.lifetimeEarned || 0).toLocaleString()}
+            Lifetime Earned: {Math.floor(Number(user.lifetimeEarned || 0)).toLocaleString()}
           </div>
         </div>
 
@@ -272,7 +272,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         <div className="admin-card" style={{ margin: 0 }}>
           <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>PASSIVE MINING YIELD</div>
           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#34d399', marginTop: '4px' }}>
-            +{(user.profitPerHour || 0).toLocaleString()} <span style={{ fontSize: '0.85rem' }}>/ hr</span>
+            +{Math.floor(Number(user.profitPerHour || 0)).toLocaleString()} <span style={{ fontSize: '0.85rem' }}>/ hr</span>
           </div>
           <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
             From {unlockedCards.length} unlocked gadget cards
@@ -391,7 +391,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   <tr key={tx.id}>
                     <td style={{ fontWeight: 700, color: '#60a5fa' }}>{tx.type}</td>
                     <td style={{ fontWeight: 800, color: tx.amount > 0 ? '#3fb950' : '#f85149' }}>
-                      {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()} 🥞
+                      {tx.amount > 0 ? `+${Math.floor(Number(tx.amount)).toLocaleString()}` : Math.floor(Number(tx.amount)).toLocaleString()} 🥞
                     </td>
                     <td style={{ color: '#8b949e', fontSize: '0.85rem' }}>{tx.description || '—'}</td>
                     <td style={{ color: '#8b949e', fontSize: '0.8rem' }}>{formatDate(tx.createdAt)}</td>

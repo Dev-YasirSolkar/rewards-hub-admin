@@ -449,7 +449,7 @@ export default function TasksPage() {
                       )}
                     </td>
                     <td>
-                      <span style={{ color: '#e3b341', fontWeight: 700 }}>+{task.reward?.toLocaleString()} pts</span>
+                      <span style={{ color: '#e3b341', fontWeight: 700 }}>+{Math.floor(Number(task.reward) || 0).toLocaleString()} pts</span>
                     </td>
                     <td>
                       <button

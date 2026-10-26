@@ -134,7 +134,7 @@ export default function TransactionsPage() {
                             color: isPositive ? '#34d399' : '#f87171',
                             letterSpacing: '-0.01em',
                           }}>
-                            {isPositive ? '+' : ''}{Number(t.amount).toLocaleString()} PTS
+                            {isPositive ? '+' : ''}{Math.floor(Number(t.amount) || 0).toLocaleString()} PTS
                           </span>
                         </td>
                         <td style={{ fontSize: '12px', color: '#94a3b8', maxWidth: '300px' }}>

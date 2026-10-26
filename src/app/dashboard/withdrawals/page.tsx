@@ -217,7 +217,7 @@ export default function WithdrawalsPage() {
                       {/* Amount Column */}
                       <td>
                         <span style={{ fontWeight: 800, color: '#f59e0b', fontSize: '13px' }}>
-                          {w.amount.toLocaleString()} pts
+                          {Math.floor(Number(w.amount) || 0).toLocaleString()} pts
                         </span>
                       </td>
 

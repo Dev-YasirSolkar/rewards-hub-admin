@@ -130,35 +130,46 @@ export async function GET(request: Request) {
       activeTasksCount = tSnap.size;
     }
 
-    // 5. Total Rewards Distributed from settings document (Cost: 1 read)
+    // 5. Total Rewards Distributed / $SOLK in Circulation (Cost: 1 aggregation read)
     try {
-      const settingsDoc = await adminDb.collection('adminSettings').doc('general').get();
-      if (settingsDoc.exists) {
-        totalRewards = settingsDoc.data()?.totalRewardsDistributed || 0;
-      }
-      if (totalRewards === 0) {
-        // Fallback: estimate or query small slice
-        const txSnap = await adminDb.collection('transactions').where('amount', '>', 0).limit(25).get();
-        totalRewards = txSnap.docs.reduce((acc, doc) => acc + (Number(doc.data().amount) || 0), 0);
+      const userCoinsSnap = await adminDb.collection('users').aggregate({
+        totalCoins: AggregateField.sum('coins'),
+        totalPoints: AggregateField.sum('pointsBalance'),
+      }).get();
+      const uData = userCoinsSnap.data();
+      const activeCirculation = Math.max(Number(uData.totalCoins || 0), Number(uData.totalPoints || 0));
+      if (activeCirculation > 0) {
+        totalRewards = activeCirculation;
+      } else {
+        const settingsDoc = await adminDb.collection('adminSettings').doc('general').get();
+        if (settingsDoc.exists) {
+          totalRewards = Number(settingsDoc.data()?.totalRewardsDistributed || 0);
+        }
       }
     } catch (e) {
       console.error('Dashboard rewards fetch error:', e);
+      try {
+        const settingsDoc = await adminDb.collection('adminSettings').doc('general').get();
+        if (settingsDoc.exists) {
+          totalRewards = Number(settingsDoc.data()?.totalRewardsDistributed || 0);
+        }
+      } catch {}
     }
 
     const telemetryData = {
-      totalUsers,
-      activeUsers,
-      newUsersToday,
-      totalRewardsDistributed: totalRewards,
+      totalUsers: Math.floor(Number(totalUsers) || 0),
+      activeUsers: Math.floor(Number(activeUsers) || 0),
+      newUsersToday: Math.floor(Number(newUsersToday) || 0),
+      totalRewardsDistributed: Math.floor(Number(totalRewards) || 0),
       pendingWithdrawals: {
-        count: pendingWithdrawalsCount,
-        sum: pendingWithdrawalsSum,
+        count: Math.floor(Number(pendingWithdrawalsCount) || 0),
+        sum: Math.floor(Number(pendingWithdrawalsSum) || 0),
       },
       paidWithdrawals: {
-        count: paidWithdrawalsCount,
-        sum: paidWithdrawalsSum,
+        count: Math.floor(Number(paidWithdrawalsCount) || 0),
+        sum: Math.floor(Number(paidWithdrawalsSum) || 0),
       },
-      activeTasks: activeTasksCount,
+      activeTasks: Math.floor(Number(activeTasksCount) || 0),
       updatedAt: new Date().toISOString(),
     };
 
