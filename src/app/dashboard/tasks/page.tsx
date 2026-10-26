@@ -48,8 +48,9 @@ export default function TasksPage() {
   const [icon, setIcon] = useState('📢');
   const [taskType, setTaskType] = useState('telegram_channel');
   const [targetUrl, setTargetUrl] = useState('');
+  const [chatId, setChatId] = useState('');
   const [reward, setReward] = useState('5000');
-  const [verificationType, setVerificationType] = useState('manual');
+  const [verificationType, setVerificationType] = useState('telegram');
   const [order, setOrder] = useState('1');
   const [isRecurring, setIsRecurring] = useState(false);
   const [active, setActive] = useState(true);
@@ -77,6 +78,9 @@ export default function TasksPage() {
     if (matched && (!icon || PRESET_ICONS.includes(icon))) {
       setIcon(matched.defaultIcon);
     }
+    if (newType.includes('telegram')) {
+      setVerificationType('telegram');
+    }
   };
 
   const openCreateModal = () => {
@@ -86,8 +90,9 @@ export default function TasksPage() {
     setIcon('📢');
     setTaskType('telegram_channel');
     setTargetUrl('');
+    setChatId('');
     setReward('5000');
-    setVerificationType('manual');
+    setVerificationType('telegram');
     setOrder((tasks.length + 1).toString());
     setIsRecurring(false);
     setActive(true);
@@ -102,8 +107,9 @@ export default function TasksPage() {
     setIcon(task.icon || '⚡');
     setTaskType(task.taskType || 'telegram_channel');
     setTargetUrl(task.targetUrl || '');
+    setChatId((task as any).chatId || (task as any).channelId || '');
     setReward(task.reward?.toString() || '5000');
-    setVerificationType(task.verificationType || 'manual');
+    setVerificationType(task.verificationType || (task.taskType?.includes('telegram') ? 'telegram' : 'manual'));
     setOrder(task.order?.toString() || '1');
     setIsRecurring(Boolean(task.isRecurring));
     setActive(task.active ?? true);
@@ -153,6 +159,7 @@ export default function TasksPage() {
       isRecurring,
       active,
       targetUrl: cleanUrl || '',
+      chatId: chatId.trim() || undefined,
     };
 
     try {
@@ -678,6 +685,30 @@ export default function TasksPage() {
                   Supports @channelName (auto-formatted to https://t.me/channelName)
                 </span>
               </div>
+
+              {/* Telegram Channel / Chat ID & Verification Guide */}
+              {(taskType.includes('telegram') || verificationType === 'telegram') && (
+                <div style={{ marginBottom: '1rem', background: '#0d1117', padding: '12px', borderRadius: '8px', border: '1px solid #1f6feb40' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#58a6ff', marginBottom: '4px', fontWeight: 600 }}>
+                    📢 Telegram Channel / Group ID (Optional if URL has @username)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. @YourChannel or -1001234567890"
+                    value={chatId}
+                    onChange={e => setChatId(e.target.value)}
+                    className="admin-input"
+                    style={{ marginBottom: '6px' }}
+                  />
+                  <div style={{ fontSize: '0.78rem', color: '#8b949e', lineHeight: '1.4' }}>
+                    <span style={{ color: '#f0883e', fontWeight: 600 }}>⚠️ Important for Telegram Verification:</span>
+                    <br />
+                    1. Add your Telegram Bot (<strong>@Yasirfestbot</strong>) as an <strong>Administrator</strong> in the channel or group.
+                    <br />
+                    2. If the channel is private (link starts with <code>+</code> or <code>joinchat</code>), you must enter the numeric Channel ID (e.g. <code>-100...</code>) above so the bot can verify members.
+                  </div>
+                </div>
+              )}
 
               {/* Verification & Display Order */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
