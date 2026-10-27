@@ -2,6 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { adminFetch } from '@/lib/admin-client';
+import {
+  SettingsIcon,
+  SaveIcon,
+  TrashIcon,
+  VideoIcon,
+  StarIcon,
+  GiftIcon,
+  ClockIcon,
+  UsersIcon,
+  WithdrawalsIcon,
+  DailyActivitiesIcon,
+} from '@/components/AdminIcons';
+
+interface MilestoneRewardConfig {
+  target: number;
+  reward: number;
+}
 
 interface AdminSettings {
   dailyCheckinRewards: number[];
@@ -9,6 +26,7 @@ interface AdminSettings {
   referralReward: number;
   referralRewardPremium?: number;
   maxReferralReward?: number;
+  milestoneVaultRewards?: MilestoneRewardConfig[];
   withdrawalEnabled: boolean;
   withdrawalMinimum: number;
   withdrawalMaximum?: number;
@@ -17,6 +35,8 @@ interface AdminSettings {
   adProvider?: string;
   adReward?: number;
   adDailyLimit?: number;
+  adBundleLimit?: number;
+  adBundleReward?: number;
   adCooldownSeconds?: number;
   adZoneId?: string;
   spinDailyLimit?: number;
@@ -29,6 +49,12 @@ export default function SettingsPage() {
     referralEnabled: true,
     referralReward: 5000,
     referralRewardPremium: 25000,
+    milestoneVaultRewards: [
+      { target: 3, reward: 25000 },
+      { target: 10, reward: 100000 },
+      { target: 25, reward: 250000 },
+      { target: 50, reward: 500000 },
+    ],
     withdrawalEnabled: true,
     withdrawalMinimum: 100000,
     withdrawalMaximum: 50000000,
@@ -36,7 +62,9 @@ export default function SettingsPage() {
     adEnabled: true,
     adProvider: 'monetag',
     adReward: 1000,
-    adDailyLimit: 15,
+    adDailyLimit: 20,
+    adBundleLimit: 20,
+    adBundleReward: 50000,
     adCooldownSeconds: 30,
     adZoneId: '11886923',
     spinDailyLimit: 5,
@@ -62,12 +90,12 @@ export default function SettingsPage() {
         body: JSON.stringify({ target: 'all' }),
       });
       if (res.success) {
-        setCacheMessage('✅ All users cache successfully invalidated and wiped!');
+        setCacheMessage('All users cache successfully invalidated and wiped!');
       } else {
-        setCacheMessage(`❌ ${res.error || 'Failed to invalidate cache'}`);
+        setCacheMessage(`Error: ${res.error || 'Failed to invalidate cache'}`);
       }
     } catch (e: any) {
-      setCacheMessage(`❌ Error: ${e.message || 'Network error'}`);
+      setCacheMessage(`Error: ${e.message || 'Network error'}`);
     } finally {
       setClearingCache(false);
     }
@@ -91,6 +119,14 @@ export default function SettingsPage() {
           referralReward: Number(d.referralReward ?? 5000),
           referralRewardPremium: Number(d.referralRewardPremium ?? 25000),
           maxReferralReward: d.maxReferralReward ? Number(d.maxReferralReward) : undefined,
+          milestoneVaultRewards: Array.isArray(d.milestoneVaultRewards) && d.milestoneVaultRewards.length === 4
+            ? d.milestoneVaultRewards
+            : [
+                { target: 3, reward: 25000 },
+                { target: 10, reward: 100000 },
+                { target: 25, reward: 250000 },
+                { target: 50, reward: 500000 },
+              ],
           withdrawalEnabled: d.withdrawalEnabled !== false,
           withdrawalMinimum: Number(d.withdrawalMinimum ?? d.minWithdrawal ?? 100000),
           withdrawalMaximum: d.withdrawalMaximum ? Number(d.withdrawalMaximum) : 50000000,
@@ -98,7 +134,9 @@ export default function SettingsPage() {
           adEnabled: d.adEnabled !== false,
           adProvider: d.adProvider || 'monetag',
           adReward: Number(d.adReward ?? 1000),
-          adDailyLimit: Number(d.adDailyLimit ?? 15),
+          adDailyLimit: Number(d.adDailyLimit ?? 20),
+          adBundleLimit: Number(d.adBundleLimit ?? 20),
+          adBundleReward: Number(d.adBundleReward ?? 50000),
           adCooldownSeconds: Number(d.adCooldownSeconds ?? 30),
           adZoneId: String(d.adZoneId || '11886923'),
           spinDailyLimit: Number(d.spinDailyLimit ?? 5),
@@ -117,6 +155,17 @@ export default function SettingsPage() {
     setSettings({ ...settings, dailyCheckinRewards: updated });
   };
 
+  const handleMilestoneChange = (index: number, field: 'target' | 'reward', val: number) => {
+    const updated = [...(settings.milestoneVaultRewards || [
+      { target: 3, reward: 25000 },
+      { target: 10, reward: 100000 },
+      { target: 25, reward: 250000 },
+      { target: 50, reward: 500000 },
+    ])];
+    updated[index] = { ...updated[index], [field]: Math.max(1, val) };
+    setSettings({ ...settings, milestoneVaultRewards: updated });
+  };
+
   const saveSettings = async () => {
     setSaving(true);
     setSaveMessage('');
@@ -126,6 +175,12 @@ export default function SettingsPage() {
         referralEnabled: Boolean(settings.referralEnabled),
         referralReward: Number(settings.referralReward),
         referralRewardPremium: Number(settings.referralRewardPremium ?? 25000),
+        milestoneVaultRewards: settings.milestoneVaultRewards || [
+          { target: 3, reward: 25000 },
+          { target: 10, reward: 100000 },
+          { target: 25, reward: 250000 },
+          { target: 50, reward: 500000 },
+        ],
         withdrawalEnabled: Boolean(settings.withdrawalEnabled),
         withdrawalMinimum: Number(settings.withdrawalMinimum),
         withdrawalMaximum: Number(settings.withdrawalMaximum || 50000000),
@@ -133,7 +188,9 @@ export default function SettingsPage() {
         adEnabled: Boolean(settings.adEnabled),
         adProvider: String(settings.adProvider || 'monetag'),
         adReward: Number(settings.adReward || 1000),
-        adDailyLimit: Number(settings.adDailyLimit || 15),
+        adDailyLimit: Number(settings.adDailyLimit || 20),
+        adBundleLimit: Number(settings.adBundleLimit || 20),
+        adBundleReward: Number(settings.adBundleReward || 50000),
         adCooldownSeconds: Number(settings.adCooldownSeconds || 30),
         adZoneId: String(settings.adZoneId || '11886923'),
         spinDailyLimit: Number(settings.spinDailyLimit || 5),
@@ -146,7 +203,7 @@ export default function SettingsPage() {
       });
 
       if (res.success) {
-        setSaveMessage('✓ All settings saved successfully! Propagated to User App in real-time.');
+        setSaveMessage('All settings saved successfully! Propagated to User App in real-time.');
         fetchSettings();
       } else {
         alert(res.error || 'Failed to save settings');
@@ -174,19 +231,19 @@ export default function SettingsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '0 0 4px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>⚙️</span> Platform Economy &amp; Game Configuration
+            <SettingsIcon size={24} color="#facc15" /> Platform Economy &amp; Game Configuration
           </h2>
           <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>
-            Control $SOLK daily check-in rewards, Monetag ads, lucky spin caps, referral rewards, and withdrawal thresholds.
+            Control $FEAST daily streak rewards, Monetag ad surge bundles, lucky spin caps, Telegram Premium referral rewards, and milestone vaults.
           </p>
         </div>
         <button
           className="admin-button admin-button-primary"
           onClick={saveSettings}
           disabled={saving}
-          style={{ padding: '10px 22px', fontSize: '13px', fontWeight: 800 }}
+          style={{ padding: '10px 22px', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}
         >
-          {saving ? 'Saving...' : '💾 Save All Changes'}
+          <SaveIcon size={16} /> {saving ? 'Saving...' : 'Save All Changes'}
         </button>
       </div>
 
@@ -218,13 +275,13 @@ export default function SettingsPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 900, margin: '0 0 6px', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🗑️</span> Global Cache Invalidation (All Users)
+              <TrashIcon size={18} color="#f87171" /> Global Cache Invalidation (All Users)
             </h3>
             <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0, maxWidth: '680px', lineHeight: 1.5 }}>
               Purge server memory caches and increment the system-wide cache version. All active user devices across Telegram will instantly wipe their local storage cache (stored balances, pending taps, cards) on their next interaction and re-fetch fresh authoritative state from Firestore.
             </p>
             {cacheMessage && (
-              <p style={{ margin: '8px 0 0', fontSize: '13px', fontWeight: 700, color: cacheMessage.startsWith('✅') ? '#34d399' : '#f87171' }}>
+              <p style={{ margin: '8px 0 0', fontSize: '13px', fontWeight: 700, color: cacheMessage.startsWith('All') ? '#34d399' : '#f87171' }}>
                 {cacheMessage}
               </p>
             )}
@@ -246,20 +303,24 @@ export default function SettingsPage() {
               whiteSpace: 'nowrap',
               boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
               fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            {clearingCache ? 'Wiping Cache...' : '🗑️ Wipe All Users Cache'}
+            <TrashIcon size={16} color="#ffffff" />
+            {clearingCache ? 'Wiping Cache...' : 'Wipe All Users Cache'}
           </button>
         </div>
       </div>
 
       {/* 1. Daily Check-in Streak Rewards */}
       <div className="admin-card" style={{ marginBottom: '20px' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 6px', color: '#f8fafc' }}>
-          📅 7-Day Streak Check-in Rewards ($SOLK Points 💰)
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 6px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <DailyActivitiesIcon size={18} color="#a78bfa" /> 7-Day Streak Check-in Rewards ($FEAST Points)
         </h3>
         <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 16px' }}>
-          Configure $SOLK granted to players for each consecutive day of check-in:
+          Configure $FEAST granted to players for each consecutive day of check-in:
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
@@ -277,21 +338,21 @@ export default function SettingsPage() {
                 min="0"
                 step="500"
               />
-              <span style={{ fontSize: '10px', color: '#8b949e', marginTop: '4px', display: 'block' }}>💰 $SOLK</span>
+              <span style={{ fontSize: '10px', color: '#8b949e', marginTop: '4px', display: 'block' }}>$FEAST</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 2. In-App Monetag Ads Configuration */}
+      {/* 2. In-App Monetag Ads Configuration & Mega Sponsor Surge Bundle */}
       <div className="admin-card" style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 4px', color: '#f8fafc' }}>
-              📺 Monetag Ads &amp; Rewarded Video
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 4px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <VideoIcon size={18} color="#38bdf8" /> Monetag Ads &amp; Mega Sponsor Surge Bundle
             </h3>
             <p style={{ color: '#8b949e', fontSize: '13px', margin: 0 }}>
-              Configure video ad rewards, daily ad limits, and cooldown delays.
+              Configure video ad quotas, bundle collection reward, and cooldown delays between ads.
             </p>
           </div>
           <span style={{ background: settings.adEnabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: settings.adEnabled ? '#10b981' : '#ef4444', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 700 }}>
@@ -310,31 +371,38 @@ export default function SettingsPage() {
               <span>Enable Monetag Ads in User App</span>
             </label>
             <p style={{ color: '#8b949e', fontSize: '11px', margin: '4px 0 0 20px' }}>
-              Users can watch Rewarded Interstitials to earn bonus $SOLK and lucky spins.
+              Users watch Rewarded Interstitials to fulfill the Mega Sponsor Surge bundle and extra spins.
             </p>
           </div>
 
           <div>
-            <label className="admin-label">Reward Per Video Ad ($SOLK)</label>
+            <label className="admin-label">Mega Surge Bundle Ads Quota (e.g. 20)</label>
             <input
               type="number"
               className="admin-input"
-              value={settings.adReward ?? 1000}
-              onChange={(e) => setSettings({ ...settings, adReward: Number(e.target.value) })}
-              min="100"
-              step="500"
+              value={settings.adBundleLimit ?? 20}
+              onChange={(e) => setSettings({ ...settings, adBundleLimit: Number(e.target.value), adDailyLimit: Number(e.target.value) })}
+              min="1"
+              max="50"
             />
+            <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
+              Total ads player must watch (e.g. 20/20) before COLLECT REWARD button unlocks.
+            </p>
           </div>
 
           <div>
-            <label className="admin-label">Daily Video Ad Limit (Per Chef)</label>
+            <label className="admin-label">Full Bundle Completion Reward ($FEAST)</label>
             <input
               type="number"
               className="admin-input"
-              value={settings.adDailyLimit ?? 15}
-              onChange={(e) => setSettings({ ...settings, adDailyLimit: Number(e.target.value) })}
-              min="1"
+              value={settings.adBundleReward ?? 50000}
+              onChange={(e) => setSettings({ ...settings, adBundleReward: Number(e.target.value) })}
+              min="1000"
+              step="5000"
             />
+            <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
+              Lump-sum reward collected strictly once the full 20/20 quota is completed.
+            </p>
           </div>
 
           <div>
@@ -346,6 +414,9 @@ export default function SettingsPage() {
               onChange={(e) => setSettings({ ...settings, adCooldownSeconds: Number(e.target.value) })}
               min="0"
             />
+            <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
+              Wait time required between individual ad watches (default: 30s).
+            </p>
           </div>
 
           <div>
@@ -362,10 +433,10 @@ export default function SettingsPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-        {/* 3. Referral Program & Spin Wheel */}
+        {/* 3. Referral Program & Telegram Premium & Milestone Vaults */}
         <div className="admin-card" style={{ margin: 0 }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 12px', color: '#f8fafc' }}>
-            👥 Referrals &amp; Lucky Spin
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 12px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <UsersIcon size={18} color="#38bdf8" /> Referrals, Premium &amp; Milestone Vaults
           </h3>
           
           <div style={{ marginBottom: '14px' }}>
@@ -380,7 +451,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Reward Per Direct Referral ($SOLK 💰)</label>
+            <label className="admin-label">Reward Per Direct Regular Referral ($FEAST)</label>
             <input
               type="number"
               className="admin-input"
@@ -390,12 +461,14 @@ export default function SettingsPage() {
               step="500"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Awarded to the inviter when a new regular friend joins via their referral link.
+              Awarded when a regular friend joins via referral link (default: 5,000 $FEAST).
             </p>
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Reward Per Telegram Premium Referral ($SOLK 🌟)</label>
+            <label className="admin-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <StarIcon size={15} color="#facc15" /> Reward Per Telegram Premium Referral (5X Boost!)
+            </label>
             <input
               type="number"
               className="admin-input"
@@ -405,12 +478,62 @@ export default function SettingsPage() {
               step="1000"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Awarded when a friend with Telegram Premium joins via the referral link.
+              Special high reward for Telegram Premium frens to drive premium conversion (default: 25,000 $FEAST).
             </p>
           </div>
 
-          <div className="admin-form-group">
-            <label className="admin-label">Lucky Spin Daily Ad Spins Limit</label>
+          {/* Milestone Vault Targets Configuration */}
+          <div style={{ marginTop: '16px', borderTop: '1px solid #1e293b', paddingTop: '12px' }}>
+            <label className="admin-label" style={{ fontWeight: 800, color: '#fde047', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <GiftIcon size={15} color="#fde047" /> Milestone Vault Chests (4 Targets &amp; Rewards)
+            </label>
+            <p style={{ color: '#8b949e', fontSize: '11px', margin: '2px 0 10px' }}>
+              Configure required friend invites and $FEAST rewards for the 4 Milestone Vaults:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              {(settings.milestoneVaultRewards || [
+                { target: 3, reward: 25000 },
+                { target: 10, reward: 100000 },
+                { target: 25, reward: 250000 },
+                { target: 50, reward: 500000 },
+              ]).map((m, idx) => (
+                <div key={idx} style={{ background: '#090d16', border: '1px solid #1e293b', borderRadius: '8px', padding: '8px 10px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#38bdf8', marginBottom: '6px' }}>
+                    Vault {idx + 1}
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '10px', color: '#94a3b8' }}>Target Frens</span>
+                      <input
+                        type="number"
+                        className="admin-input"
+                        value={m.target}
+                        onChange={(e) => handleMilestoneChange(idx, 'target', Number(e.target.value))}
+                        style={{ margin: 0, padding: '4px 6px', fontSize: '12px' }}
+                        min="1"
+                      />
+                    </div>
+                    <div style={{ flex: 1.2 }}>
+                      <span style={{ fontSize: '10px', color: '#94a3b8' }}>Reward ($FEAST)</span>
+                      <input
+                        type="number"
+                        className="admin-input"
+                        value={m.reward}
+                        onChange={(e) => handleMilestoneChange(idx, 'reward', Number(e.target.value))}
+                        style={{ margin: 0, padding: '4px 6px', fontSize: '12px' }}
+                        step="5000"
+                        min="1000"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-form-group" style={{ marginTop: '16px' }}>
+            <label className="admin-label">Lucky Spin Daily Ad Limit</label>
             <input
               type="number"
               className="admin-input"
@@ -427,8 +550,8 @@ export default function SettingsPage() {
 
         {/* 4. Withdrawal Rules */}
         <div className="admin-card" style={{ margin: 0 }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 12px', color: '#f8fafc' }}>
-            💸 Withdrawal &amp; Payout Rules
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 12px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WithdrawalsIcon size={18} color="#34d399" /> Withdrawal &amp; Payout Rules
           </h3>
           
           <div style={{ marginBottom: '14px' }}>
@@ -446,7 +569,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Minimum Withdrawal Threshold ($SOLK)</label>
+            <label className="admin-label">Minimum Withdrawal Threshold ($FEAST)</label>
             <input
               type="number"
               className="admin-input"
@@ -461,7 +584,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Maximum Single Withdrawal ($SOLK)</label>
+            <label className="admin-label">Maximum Single Withdrawal ($FEAST)</label>
             <input
               type="number"
               className="admin-input"
@@ -470,6 +593,23 @@ export default function SettingsPage() {
               min="10000"
               step="1000000"
             />
+          </div>
+
+          <div className="admin-form-group">
+            <label className="admin-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ClockIcon size={15} color="#94a3b8" /> Withdrawal Cooldown (Hours)
+            </label>
+            <input
+              type="number"
+              className="admin-input"
+              value={settings.withdrawalCooldownHours || 24}
+              onChange={(e) => setSettings({ ...settings, withdrawalCooldownHours: Number(e.target.value) })}
+              min="0"
+              step="1"
+            />
+            <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
+              Mandatory cooldown delay required between consecutive user payouts (default: 24h).
+            </p>
           </div>
         </div>
       </div>

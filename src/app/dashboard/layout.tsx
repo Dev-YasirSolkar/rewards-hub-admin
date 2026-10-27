@@ -3,6 +3,23 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import {
+  DashboardIcon,
+  UsersIcon,
+  WithdrawalsIcon,
+  TransactionsIcon,
+  MiningCardsIcon,
+  DailyActivitiesIcon,
+  TasksIcon,
+  AffiliatesIcon,
+  SettingsIcon,
+  FraudIcon,
+  NotificationsIcon,
+  AuditIcon,
+  CrownIcon,
+  LogoutIcon,
+  SpinnerIcon,
+} from '@/components/AdminIcons';
 
 export default function DashboardLayout({
   children,
@@ -43,33 +60,33 @@ export default function DashboardLayout({
     {
       category: 'Overview',
       items: [
-        { name: 'Dashboard', icon: '📊', path: '/dashboard' },
+        { name: 'Dashboard', icon: <DashboardIcon size={18} />, path: '/dashboard' },
       ],
     },
     {
       category: 'User Operations',
       items: [
-        { name: 'Users', icon: '👥', path: '/dashboard/users' },
-        { name: 'Withdrawals', icon: '💳', path: '/dashboard/withdrawals' },
-        { name: 'Transactions', icon: '💰', path: '/dashboard/transactions' },
+        { name: 'Users', icon: <UsersIcon size={18} />, path: '/dashboard/users' },
+        { name: 'Withdrawals', icon: <WithdrawalsIcon size={18} />, path: '/dashboard/withdrawals' },
+        { name: 'Transactions', icon: <TransactionsIcon size={18} />, path: '/dashboard/transactions' },
       ],
     },
     {
       category: 'Growth & Ads',
       items: [
-        { name: 'Mining Cards', icon: '⛏️', path: '/dashboard/mining-cards' },
-        { name: 'Daily Activities', icon: '🕵️', path: '/dashboard/daily-activities' },
-        { name: 'Tasks', icon: '📋', path: '/dashboard/tasks' },
-        { name: 'Affiliates', icon: '🤝', path: '/dashboard/affiliates' },
-        { name: 'Settings & Ads', icon: '⚙️', path: '/dashboard/settings' },
+        { name: 'Mining Cards', icon: <MiningCardsIcon size={18} />, path: '/dashboard/mining-cards' },
+        { name: 'Daily Activities', icon: <DailyActivitiesIcon size={18} />, path: '/dashboard/daily-activities' },
+        { name: 'Tasks', icon: <TasksIcon size={18} />, path: '/dashboard/tasks' },
+        { name: 'Affiliates', icon: <AffiliatesIcon size={18} />, path: '/dashboard/affiliates' },
+        { name: 'Settings & Ads', icon: <SettingsIcon size={18} />, path: '/dashboard/settings' },
       ],
     },
     {
       category: 'Security & Ops',
       items: [
-        { name: 'Fraud Monitor', icon: '🛡️', path: '/dashboard/fraud' },
-        { name: 'Notifications', icon: '📢', path: '/dashboard/notifications' },
-        { name: 'Audit Logs', icon: '📜', path: '/dashboard/audit' },
+        { name: 'Fraud Monitor', icon: <FraudIcon size={18} />, path: '/dashboard/fraud' },
+        { name: 'Notifications', icon: <NotificationsIcon size={18} />, path: '/dashboard/notifications' },
+        { name: 'Audit Logs', icon: <AuditIcon size={18} />, path: '/dashboard/audit' },
       ],
     },
   ];
@@ -86,7 +103,9 @@ export default function DashboardLayout({
         fontSize: '0.9rem',
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+            <SpinnerIcon size={32} color="#facc15" />
+          </div>
           <div>Authenticating Admin Portal...</div>
         </div>
       </div>
@@ -98,7 +117,7 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? '' : 'closed'}`}>
         <div className="admin-sidebar-header">
-          <span style={{ fontSize: '1.2rem' }}>👑</span>
+          <CrownIcon size={22} color="#facc15" />
           <span style={{ color: '#FDE047', fontWeight: 900 }}>Yasir Fest</span>
           <span style={{
             fontSize: '0.65rem',
@@ -124,8 +143,9 @@ export default function DashboardLayout({
                     key={item.path}
                     href={item.path}
                     className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
                   >
-                    <span>{item.icon}</span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>{item.icon}</span>
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -150,15 +170,18 @@ export default function DashboardLayout({
             onClick={handleLogout}
             title="Log Out"
             style={{
-              background: 'transparent',
-              border: 'none',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              borderRadius: '6px',
               cursor: 'pointer',
-              color: '#94a3b8',
-              fontSize: '1rem',
-              padding: '4px',
+              color: '#f87171',
+              padding: '6px 8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            🚪
+            <LogoutIcon size={16} color="#f87171" />
           </button>
         </div>
       </aside>
@@ -175,21 +198,21 @@ export default function DashboardLayout({
             >
               ☰
             </button>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>
-              Administration Portal
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CrownIcon size={18} color="#facc15" /> Administration Portal
             </h2>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span className="admin-badge admin-badge-success">
-              🔥 Firebase Cloud Connected
+            <span className="admin-badge admin-badge-success" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} /> Firebase Cloud Connected
             </span>
             <button
               onClick={handleLogout}
               className="admin-button admin-button-secondary"
-              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+              style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
             >
-              Log Out
+              <LogoutIcon size={13} color="#94a3b8" /> Log Out
             </button>
           </div>
         </header>

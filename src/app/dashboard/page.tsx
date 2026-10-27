@@ -3,6 +3,19 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
+import {
+  UsersIcon,
+  CheckCircleIcon,
+  StarIcon,
+  TransactionsIcon,
+  ClockIcon,
+  WithdrawalsIcon,
+  TasksIcon,
+  GiftIcon,
+  MiningCardsIcon,
+  TrashIcon,
+  RefreshIcon,
+} from '@/components/AdminIcons';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -108,32 +121,32 @@ export default function AdminDashboard() {
   const solkInCirculation = Math.floor(Number(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0) || 0);
 
   const statItems = [
-    { label: 'Total Registered Chefs', value: formatInt(stats?.totalUsers), icon: '👨‍🍳', color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
-    { label: 'Active 24h Chefs', value: formatInt(stats?.activeUsers), icon: '🟢', color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
-    { label: 'New Chefs Today', value: formatInt(stats?.newUsersToday ?? stats?.newToday), icon: '✨', color: '#F59E0B', aura: 'rgba(245, 158, 11, 0.25)' },
+    { label: 'Total Registered Chefs', value: formatInt(stats?.totalUsers), icon: <UsersIcon size={22} color="#FDE047" />, color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
+    { label: 'Active 24h Chefs', value: formatInt(stats?.activeUsers), icon: <CheckCircleIcon size={22} color="#34d399" />, color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
+    { label: 'New Chefs Today', value: formatInt(stats?.newUsersToday ?? stats?.newToday), icon: <StarIcon size={22} color="#F59E0B" />, color: '#F59E0B', aura: 'rgba(245, 158, 11, 0.25)' },
     {
       label: '$SOLK In Circulation',
       value: `${formatInt(solkInCirculation)} $SOLK`,
-      icon: '💰',
+      icon: <TransactionsIcon size={22} color="#FDE047" />,
       color: '#FDE047',
       aura: 'rgba(253, 224, 71, 0.25)'
     },
     {
       label: 'Pending Payouts',
       value: `${formatInt(pendingWithdrawalsCount)} (${formatInt(pendingWithdrawalsSum)} $SOLK)`,
-      icon: '⏳',
+      icon: <ClockIcon size={22} color="#F87171" />,
       color: '#F87171',
       aura: 'rgba(248, 113, 113, 0.25)'
     },
     {
       label: 'Settled Payouts',
       value: `${formatInt(paidWithdrawalsCount)} (${formatInt(paidWithdrawalsSum)} $SOLK)`,
-      icon: '✅',
+      icon: <WithdrawalsIcon size={22} color="#10B981" />,
       color: '#10B981',
       aura: 'rgba(16, 185, 129, 0.25)'
     },
-    { label: 'Active Quests', value: formatInt(stats?.activeTasks), icon: '📋', color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
-    { label: 'Quest Claims Today', value: formatInt(stats?.taskCompletionsToday), icon: '🎯', color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
+    { label: 'Active Quests', value: formatInt(stats?.activeTasks), icon: <TasksIcon size={22} color="#a78bfa" />, color: '#a78bfa', aura: 'rgba(167, 139, 250, 0.25)' },
+    { label: 'Quest Claims Today', value: formatInt(stats?.taskCompletionsToday), icon: <GiftIcon size={22} color="#38bdf8" />, color: '#38bdf8', aura: 'rgba(56, 189, 248, 0.25)' },
   ];
 
   return (
@@ -182,16 +195,20 @@ export default function AdminDashboard() {
               color: '#ffffff',
               border: 'none',
               fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            {clearingCache ? 'Wiping Cache...' : '🗑️ Wipe All Users Cache'}
+            <TrashIcon size={15} color="#ffffff" />
+            {clearingCache ? 'Wiping Cache...' : 'Wipe All Users Cache'}
           </button>
           <button
             className="admin-button"
             onClick={() => fetchStats(true)}
-            style={{ padding: '8px 16px', fontSize: '13px' }}
+            style={{ padding: '8px 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            ↻ Refresh Node Stats
+            <RefreshIcon size={14} color="#38bdf8" /> Refresh Node Stats
           </button>
         </div>
       </div>
@@ -226,7 +243,7 @@ export default function AdminDashboard() {
       {/* ── QUICK ACTION CONTROL HUB ─────────────────────────────────────── */}
       <div className="admin-card">
         <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 16px', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>⚡ Admin Operations &amp; Fast Navigation</span>
+          <StarIcon size={18} color="#facc15" /> Admin Operations &amp; Fast Navigation
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
           <Link
@@ -245,7 +262,9 @@ export default function AdminDashboard() {
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b' }}>⛏️ Mining Cards</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MiningCardsIcon size={16} /> Mining Cards
+              </div>
               <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Add &amp; auto-tune gadget cards</div>
             </div>
             <span style={{ fontSize: '18px', color: '#f59e0b' }}>→</span>
@@ -267,7 +286,9 @@ export default function AdminDashboard() {
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f87171' }}>🎯 Cipher &amp; Combo</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <GiftIcon size={16} color="#f87171" /> Cipher &amp; Combo
+              </div>
               <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Set daily mystery codes &amp; cards</div>
             </div>
             <span style={{ fontSize: '18px', color: '#f87171' }}>→</span>
@@ -289,7 +310,9 @@ export default function AdminDashboard() {
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8' }}>👥 Chefs &amp; Positions</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <UsersIcon size={16} color="#38bdf8" /> Chefs &amp; Positions
+              </div>
               <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>10 Career levels, $SOLK &amp; bans</div>
             </div>
             <span style={{ fontSize: '18px', color: '#38bdf8' }}>→</span>
@@ -311,7 +334,9 @@ export default function AdminDashboard() {
             }}
           >
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FDE047' }}>💳 Review Payouts</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#FDE047', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <WithdrawalsIcon size={16} color="#FDE047" /> Review Payouts
+              </div>
               <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Approve TON, USDT &amp; UPI payouts</div>
             </div>
             <span style={{ fontSize: '18px', color: '#FDE047' }}>→</span>
