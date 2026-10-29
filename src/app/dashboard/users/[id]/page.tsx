@@ -3,6 +3,8 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
+import { resolveLevelFromPoints } from '@/lib/levels';
+import { MULTITAP_CONFIGS } from '@/lib/multitap-config';
 
 const CHARACTER_TIERS: Record<number, { name: string; avatar: string; color: string; tagline: string }> = {
   1: { name: 'Food Noob', avatar: '🍳', color: '#f59e0b', tagline: 'Beginner Kitchen Worker' },
@@ -124,7 +126,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     e.preventDefault();
     const amt = parseInt(adjustAmount, 10);
     if (isNaN(amt) || amt === 0) {
-      alert('Enter a valid non-zero amount of $SOLK');
+      alert('Enter a valid non-zero amount of $FEAST');
       return;
     }
 
@@ -139,7 +141,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       });
 
       if (res.success) {
-        alert(`$SOLK balance adjusted by ${amt > 0 ? '+' : ''}${amt.toLocaleString()} $SOLK!`);
+        alert(`$FEAST balance adjusted by ${amt > 0 ? '+' : ''}${amt.toLocaleString()} $FEAST!`);
         setShowAdjustModal(false);
         setAdjustAmount('');
         setAdjustReason('');
@@ -194,7 +196,10 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const isSuspended = user.status === 'suspended' || user.isBanned;
   const hasExpiry = isSuspended && user.suspendedUntil;
   const isExpired = hasExpiry && new Date(user.suspendedUntil).getTime() <= Date.now();
-  const tier = CHARACTER_TIERS[user.level || 1] || CHARACTER_TIERS[1];
+  const points = user.coins ?? user.pointsBalance ?? 0;
+  const tier = resolveLevelFromPoints(points, user.level);
+  const multitapLevel = Math.min(15, Math.max(1, Number(user.multitapLevel || 1)));
+  const multitapEarn = MULTITAP_CONFIGS[multitapLevel]?.earnPerTap || (2 + multitapLevel);
   const miningCardsObj = (typeof user.miningCards === 'object' && user.miningCards) ? user.miningCards : {};
   const unlockedCards = Object.entries(miningCardsObj).filter(([, lvl]) => Number(lvl) > 0);
 
@@ -220,7 +225,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={() => setShowAdjustModal(true)} className="admin-button admin-button-primary">
-            💰 Adjust $SOLK
+            💰 Adjust $FEAST
           </button>
           {isSuspended && !isExpired ? (
             <button onClick={handleUnsuspend} className="admin-button" style={{ borderColor: '#238636', color: '#3fb950' }}>
@@ -250,7 +255,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             <span style={{ fontSize: '1.8rem' }}>{tier.avatar}</span>
             <div>
               <div style={{ fontSize: '1.1rem', fontWeight: 900, color: tier.color }}>
-                Level {user.level || 1}: {tier.name}
+                Level {tier.level}: {tier.name}
               </div>
               <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{tier.tagline}</div>
             </div>
@@ -259,9 +264,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* Balance Card */}
         <div className="admin-card" style={{ margin: 0 }}>
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CURRENT $SOLK BALANCE</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>CURRENT $FEAST BALANCE</div>
           <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#f59e0b', marginTop: '4px' }}>
-            {Math.floor(Number(user.coins ?? user.pointsBalance ?? 0)).toLocaleString()} $SOLK
+            {Math.floor(Number(points)).toLocaleString()} $FEAST
           </div>
           <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
             Lifetime Earned: {Math.floor(Number(user.lifetimeEarned || 0)).toLocaleString()}
@@ -279,14 +284,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        {/* Energy & Streak */}
+        {/* Energy, Multitap & Streak */}
         <div className="admin-card" style={{ margin: 0 }}>
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>ENERGY &amp; STREAK</div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>ENERGY &amp; MULTITAP</div>
           <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#38bdf8', marginTop: '4px' }}>
-            ⚡ {user.energy || 0} / {user.maxEnergy || 1000}
+            ⚡ {user.energy || 0} / {user.maxEnergy || 1000} (+3/s)
           </div>
           <div style={{ fontSize: '0.75rem', color: '#facc15', marginTop: '2px' }}>
-            🔥 {user.checkinStreak || 0}-Day Check-in Streak
+            👆 Multitap Lv.{multitapLevel} ({multitapEarn} $FEAST/tap) • 🔥 {user.checkinStreak || 0}d streak
           </div>
         </div>
       </div>
@@ -391,7 +396,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                   <tr key={tx.id}>
                     <td style={{ fontWeight: 700, color: '#60a5fa' }}>{tx.type}</td>
                     <td style={{ fontWeight: 800, color: tx.amount > 0 ? '#3fb950' : '#f85149' }}>
-                      {tx.amount > 0 ? `+${Math.floor(Number(tx.amount)).toLocaleString()}` : Math.floor(Number(tx.amount)).toLocaleString()} 🥞
+                      {tx.amount > 0 ? `+${Math.floor(Number(tx.amount)).toLocaleString()}` : Math.floor(Number(tx.amount)).toLocaleString()} $FEAST
                     </td>
                     <td style={{ color: '#8b949e', fontSize: '0.85rem' }}>{tx.description || '—'}</td>
                     <td style={{ color: '#8b949e', fontSize: '0.8rem' }}>{formatDate(tx.createdAt)}</td>
@@ -413,9 +418,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           zIndex: 1000, padding: '1rem',
         }}>
           <div className="admin-card" style={{ width: '100%', maxWidth: '420px', margin: 0 }}>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#f0f6fc' }}>💰 Adjust $SOLK Balance</h3>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#f0f6fc' }}>💰 Adjust $FEAST Balance</h3>
             <p style={{ fontSize: '0.85rem', color: '#8b949e', marginBottom: '1rem' }}>
-              Add (positive) or deduct (negative) $SOLK for <b style={{ color: '#fff' }}>{user.firstName}</b>.
+              Add (positive) or deduct (negative) $FEAST for <b style={{ color: '#fff' }}>{user.firstName}</b>.
             </p>
 
             <form onSubmit={handleAdjustBalanceSubmit}>

@@ -293,7 +293,7 @@ export default function DailyActivitiesAdminPage() {
             </div>
 
             <div className="admin-form-group">
-              <label className="admin-label">Reward Amount ($SOLK Points 💰)</label>
+              <label className="admin-label">Reward Amount ($FEAST Points 💰)</label>
               <input
                 type="number"
                 className="admin-input"
@@ -532,7 +532,7 @@ export default function DailyActivitiesAdminPage() {
             </div>
 
             <div className="admin-form-group">
-              <label className="admin-label">Reward Amount ($SOLK Points 💰)</label>
+              <label className="admin-label">Reward Amount ($FEAST Points 💰)</label>
               <input
                 type="number"
                 className="admin-input"

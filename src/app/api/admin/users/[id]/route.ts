@@ -4,6 +4,7 @@ import { authenticateAdmin, forbiddenResponse, serverError, badRequest } from '@
 import { createAuditLog } from '@/lib/audit';
 import { rateLimit } from '@/lib/rate-limit';
 import { getCached, setCached } from '@/lib/cache';
+import { resolveLevelFromPoints } from '@/lib/levels';
 
 function formatFirestoreData(data: Record<string, any>) {
   const result: Record<string, any> = {};
@@ -108,6 +109,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const coinsBalance = rawUserData.coins !== undefined ? Number(rawUserData.coins) : Number(rawUserData.pointsBalance || rawUserData.balance || 0);
     const lifetimeEarned = Math.max(coinsBalance, Number(rawUserData.totalEarned || 0), Number(rawUserData.lifetimeEarned || 0));
+    const resolvedLevel = resolveLevelFromPoints(coinsBalance, rawUserData.level);
 
     const formattedUser = {
       id: userId,
@@ -116,8 +118,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       pointsBalance: coinsBalance,
       balance: coinsBalance,
       coins: coinsBalance,
-      level: Number(rawUserData.level || 1),
+      level: resolvedLevel.level,
+      levelName: resolvedLevel.name,
+      levelConfig: resolvedLevel,
       profitPerHour: Number(rawUserData.profitPerHour || 0),
+      multitapLevel: Number(rawUserData.multitapLevel || 1),
       energy: Number(rawUserData.energy || 1000),
       maxEnergy: Number(rawUserData.maxEnergy || 1000),
       lifetimeEarned,

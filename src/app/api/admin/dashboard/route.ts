@@ -130,7 +130,7 @@ export async function GET(request: Request) {
       activeTasksCount = tSnap.size;
     }
 
-    // 5. Total Rewards Distributed / $SOLK in Circulation (Cost: 1 aggregation read)
+    // 5. Total Rewards Distributed / $FEAST in Circulation (Cost: 1 aggregation read)
     try {
       const userCoinsSnap = await adminDb.collection('users').aggregate({
         totalCoins: AggregateField.sum('coins'),

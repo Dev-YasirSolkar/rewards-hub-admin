@@ -21,6 +21,9 @@ interface Task {
 const TASK_TYPES = [
   { value: 'telegram_channel', label: 'Telegram Channel', defaultIcon: '📢' },
   { value: 'telegram_group', label: 'Telegram Group', defaultIcon: '💬' },
+  { value: 'smartlink', label: 'SmartLink Direct Offer', defaultIcon: '🎁' },
+  { value: 'partner', label: 'Partner Game / App', defaultIcon: '🎮' },
+  { value: 'youtube', label: 'YouTube Video / Watch', defaultIcon: '📺' },
   { value: 'website_visit', label: 'Website Visit', defaultIcon: '🌐' },
   { value: 'social_follow', label: 'Social Follow (Twitter/Insta)', defaultIcon: '🐦' },
   { value: 'social', label: 'Social Media Quest', defaultIcon: '📱' },
@@ -29,7 +32,7 @@ const TASK_TYPES = [
   { value: 'custom', label: 'Custom / Other', defaultIcon: '⚡' },
 ];
 
-const PRESET_ICONS = ['📢', '💬', '🌐', '🐦', '📸', '📺', '🎁', '⚡', '🔥', '💎', '🚀', '⭐'];
+const PRESET_ICONS = ['📢', '💬', '🌐', '🐦', '📸', '📺', '🎁', '⚡', '🔥', '💎', '🚀', '⭐', '🎮', '🍔', '👑'];
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -456,7 +459,7 @@ export default function TasksPage() {
                       )}
                     </td>
                     <td>
-                      <span style={{ color: '#e3b341', fontWeight: 700 }}>+{Math.floor(Number(task.reward) || 0).toLocaleString()} pts</span>
+                      <span style={{ color: '#e3b341', fontWeight: 700 }}>+{Math.floor(Number(task.reward) || 0).toLocaleString()} $FEAST</span>
                     </td>
                     <td>
                       <button
@@ -654,7 +657,7 @@ export default function TasksPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
-                    Reward Points *
+                    Reward Points ($FEAST) *
                   </label>
                   <input
                     type="number"
@@ -724,6 +727,7 @@ export default function TasksPage() {
                   >
                     <option value="manual">Manual Verify Button (Timer)</option>
                     <option value="auto">Auto Verify (Instant on click)</option>
+                    <option value="click">Auto Verify (10s Countdown)</option>
                     <option value="telegram">Telegram Membership Check</option>
                   </select>
                 </div>

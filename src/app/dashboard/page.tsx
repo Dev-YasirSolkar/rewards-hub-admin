@@ -118,29 +118,29 @@ export default function AdminDashboard() {
   const paidWithdrawalsSum =
     typeof stats?.paidWithdrawals === 'object' ? Math.floor(Number(stats.paidWithdrawals?.sum) || 0) : 0;
 
-  const solkInCirculation = Math.floor(Number(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0) || 0);
+  const feastInCirculation = Math.floor(Number(stats?.totalRewardsDistributed ?? stats?.totalRewards ?? 0) || 0);
 
   const statItems = [
     { label: 'Total Registered Chefs', value: formatInt(stats?.totalUsers), icon: <UsersIcon size={22} color="#FDE047" />, color: '#FDE047', aura: 'rgba(253, 224, 71, 0.25)' },
     { label: 'Active 24h Chefs', value: formatInt(stats?.activeUsers), icon: <CheckCircleIcon size={22} color="#34d399" />, color: '#34d399', aura: 'rgba(52, 211, 153, 0.25)' },
     { label: 'New Chefs Today', value: formatInt(stats?.newUsersToday ?? stats?.newToday), icon: <StarIcon size={22} color="#F59E0B" />, color: '#F59E0B', aura: 'rgba(245, 158, 11, 0.25)' },
     {
-      label: '$SOLK In Circulation',
-      value: `${formatInt(solkInCirculation)} $SOLK`,
+      label: '$FEAST In Circulation',
+      value: `${formatInt(feastInCirculation)} $FEAST`,
       icon: <TransactionsIcon size={22} color="#FDE047" />,
       color: '#FDE047',
       aura: 'rgba(253, 224, 71, 0.25)'
     },
     {
       label: 'Pending Payouts',
-      value: `${formatInt(pendingWithdrawalsCount)} (${formatInt(pendingWithdrawalsSum)} $SOLK)`,
+      value: `${formatInt(pendingWithdrawalsCount)} (${formatInt(pendingWithdrawalsSum)} $FEAST)`,
       icon: <ClockIcon size={22} color="#F87171" />,
       color: '#F87171',
       aura: 'rgba(248, 113, 113, 0.25)'
     },
     {
       label: 'Settled Payouts',
-      value: `${formatInt(paidWithdrawalsCount)} (${formatInt(paidWithdrawalsSum)} $SOLK)`,
+      value: `${formatInt(paidWithdrawalsCount)} (${formatInt(paidWithdrawalsSum)} $FEAST)`,
       icon: <WithdrawalsIcon size={22} color="#10B981" />,
       color: '#10B981',
       aura: 'rgba(16, 185, 129, 0.25)'
@@ -313,7 +313,7 @@ export default function AdminDashboard() {
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <UsersIcon size={16} color="#38bdf8" /> Chefs &amp; Positions
               </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>10 Career levels, $SOLK &amp; bans</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>10 Career levels, $FEAST &amp; bans</div>
             </div>
             <span style={{ fontSize: '18px', color: '#38bdf8' }}>→</span>
           </Link>

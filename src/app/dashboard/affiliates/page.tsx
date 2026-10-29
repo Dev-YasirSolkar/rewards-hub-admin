@@ -217,7 +217,7 @@ export default function AffiliatesPage() {
                       )}
                     </td>
                     <td>
-                      <span style={{ color: '#e3b341', fontWeight: 600 }}>+{c.reward} pts</span>
+                      <span style={{ color: '#e3b341', fontWeight: 600 }}>+{c.reward} $FEAST</span>
                     </td>
                     <td>{c.clicks || 0}</td>
                     <td>{c.conversions || 0}</td>
@@ -360,7 +360,7 @@ export default function AffiliatesPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#8b949e', marginBottom: '4px' }}>
-                    Reward (pts) *
+                    Reward ($FEAST) *
                   </label>
                   <input
                     type="number"

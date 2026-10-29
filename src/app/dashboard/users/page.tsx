@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { adminFetch } from '@/lib/admin-client';
+import { resolveLevelFromPoints } from '@/lib/levels';
 
 const CHARACTER_TIERS: Record<number, { name: string; avatar: string; color: string }> = {
   1: { name: 'Food Noob', avatar: '🍳', color: '#f59e0b' },
@@ -132,7 +133,7 @@ export default function UsersPage() {
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#f0f6fc' }}>Chefs &amp; Players Management</h2>
           <p style={{ margin: '4px 0 0', color: '#8b949e', fontSize: '0.875rem' }}>
-            Inspect players, 10-Career Levels, $SOLK balances, hourly profits, and manage account statuses.
+            Inspect players, 10-Career Levels, $FEAST balances, hourly profits, and manage account statuses.
           </p>
         </div>
         <button onClick={fetchUsers} className="admin-button" style={{ padding: '6px 14px', fontSize: '13px' }}>
@@ -176,7 +177,7 @@ export default function UsersPage() {
               <tr>
                 <th>Chef / User</th>
                 <th>Career Position</th>
-                <th>$SOLK Points 💰</th>
+                <th>$FEAST Points 💰</th>
                 <th>Profit / Hour</th>
                 <th>Status</th>
                 <th>Joined</th>
@@ -195,7 +196,8 @@ export default function UsersPage() {
                   const isSuspended = user.status === 'suspended' || user.isBanned;
                   const hasExpiry = isSuspended && user.suspendedUntil;
                   const isExpired = hasExpiry && new Date(user.suspendedUntil).getTime() <= Date.now();
-                  const tier = CHARACTER_TIERS[user.level || 1] || CHARACTER_TIERS[1];
+                  const points = user.pointsBalance ?? user.coins ?? 0;
+                  const tier = resolveLevelFromPoints(points, user.level);
 
                   return (
                     <tr key={user.id}>
@@ -229,12 +231,12 @@ export default function UsersPage() {
                           }}
                         >
                           <span>{tier.avatar}</span>
-                          <span>Lvl {user.level || 1}: {tier.name}</span>
+                          <span>Lvl {tier.level}: {tier.name}</span>
                         </div>
                       </td>
                       <td>
                         <span style={{ fontWeight: 800, color: '#f59e0b' }}>
-                          {Math.floor(Number(user.pointsBalance ?? user.coins ?? 0)).toLocaleString()} 🥞
+                          {Math.floor(Number(points)).toLocaleString()} $FEAST
                         </span>
                       </td>
                       <td>

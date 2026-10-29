@@ -48,7 +48,7 @@ export default function SettingsPage() {
     dailyCheckinRewards: [500, 1000, 2500, 5000, 15000, 25000, 100000],
     referralEnabled: true,
     referralReward: 5000,
-    referralRewardPremium: 25000,
+    referralRewardPremium: 15000,
     milestoneVaultRewards: [
       { target: 3, reward: 25000 },
       { target: 10, reward: 100000 },
@@ -62,9 +62,9 @@ export default function SettingsPage() {
     adEnabled: true,
     adProvider: 'monetag',
     adReward: 1000,
-    adDailyLimit: 20,
-    adBundleLimit: 20,
-    adBundleReward: 50000,
+    adDailyLimit: 10,
+    adBundleLimit: 10,
+    adBundleReward: 250000,
     adCooldownSeconds: 30,
     adZoneId: '11886923',
     spinDailyLimit: 5,
@@ -117,7 +117,7 @@ export default function SettingsPage() {
             : [500, 1000, 2500, 5000, 15000, 25000, 100000],
           referralEnabled: d.referralEnabled !== false,
           referralReward: Number(d.referralReward ?? 5000),
-          referralRewardPremium: Number(d.referralRewardPremium ?? 25000),
+          referralRewardPremium: Number(d.referralRewardPremium ?? 15000),
           maxReferralReward: d.maxReferralReward ? Number(d.maxReferralReward) : undefined,
           milestoneVaultRewards: Array.isArray(d.milestoneVaultRewards) && d.milestoneVaultRewards.length === 4
             ? d.milestoneVaultRewards
@@ -134,9 +134,9 @@ export default function SettingsPage() {
           adEnabled: d.adEnabled !== false,
           adProvider: d.adProvider || 'monetag',
           adReward: Number(d.adReward ?? 1000),
-          adDailyLimit: Number(d.adDailyLimit ?? 20),
-          adBundleLimit: Number(d.adBundleLimit ?? 20),
-          adBundleReward: Number(d.adBundleReward ?? 50000),
+          adDailyLimit: Number(d.adDailyLimit ?? 10),
+          adBundleLimit: Number(d.adBundleLimit ?? 10),
+          adBundleReward: Number(d.adBundleReward ?? 250000),
           adCooldownSeconds: Number(d.adCooldownSeconds ?? 30),
           adZoneId: String(d.adZoneId || '11886923'),
           spinDailyLimit: Number(d.spinDailyLimit ?? 5),
@@ -174,7 +174,7 @@ export default function SettingsPage() {
         dailyCheckinRewards: settings.dailyCheckinRewards.map(Number),
         referralEnabled: Boolean(settings.referralEnabled),
         referralReward: Number(settings.referralReward),
-        referralRewardPremium: Number(settings.referralRewardPremium ?? 25000),
+        referralRewardPremium: Number(settings.referralRewardPremium ?? 15000),
         milestoneVaultRewards: settings.milestoneVaultRewards || [
           { target: 3, reward: 25000 },
           { target: 10, reward: 100000 },
@@ -188,9 +188,9 @@ export default function SettingsPage() {
         adEnabled: Boolean(settings.adEnabled),
         adProvider: String(settings.adProvider || 'monetag'),
         adReward: Number(settings.adReward || 1000),
-        adDailyLimit: Number(settings.adDailyLimit || 20),
-        adBundleLimit: Number(settings.adBundleLimit || 20),
-        adBundleReward: Number(settings.adBundleReward || 50000),
+        adDailyLimit: Number(settings.adDailyLimit || 10),
+        adBundleLimit: Number(settings.adBundleLimit || 10),
+        adBundleReward: Number(settings.adBundleReward || 250000),
         adCooldownSeconds: Number(settings.adCooldownSeconds || 30),
         adZoneId: String(settings.adZoneId || '11886923'),
         spinDailyLimit: Number(settings.spinDailyLimit || 5),
@@ -376,17 +376,17 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="admin-label">Mega Surge Bundle Ads Quota (e.g. 20)</label>
+            <label className="admin-label">Mega Surge Bundle Ads Quota (e.g. 10)</label>
             <input
               type="number"
               className="admin-input"
-              value={settings.adBundleLimit ?? 20}
+              value={settings.adBundleLimit ?? 10}
               onChange={(e) => setSettings({ ...settings, adBundleLimit: Number(e.target.value), adDailyLimit: Number(e.target.value) })}
               min="1"
               max="50"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Total ads player must watch (e.g. 20/20) before COLLECT REWARD button unlocks.
+              Total ads player must watch (e.g. 10/10) before COLLECT REWARD button unlocks.
             </p>
           </div>
 
@@ -395,13 +395,13 @@ export default function SettingsPage() {
             <input
               type="number"
               className="admin-input"
-              value={settings.adBundleReward ?? 50000}
+              value={settings.adBundleReward ?? 250000}
               onChange={(e) => setSettings({ ...settings, adBundleReward: Number(e.target.value) })}
               min="1000"
               step="5000"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Lump-sum reward collected strictly once the full 20/20 quota is completed.
+              Lump-sum reward collected strictly once the full 10/10 quota is completed (default: 250,000 $FEAST).
             </p>
           </div>
 
@@ -467,18 +467,18 @@ export default function SettingsPage() {
 
           <div className="admin-form-group">
             <label className="admin-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <StarIcon size={15} color="#facc15" /> Reward Per Telegram Premium Referral (5X Boost!)
+              <StarIcon size={15} color="#facc15" /> Reward Per Telegram Premium Referral (3X Boost: 15,000 $FEAST)
             </label>
             <input
               type="number"
               className="admin-input"
-              value={settings.referralRewardPremium ?? 25000}
+              value={settings.referralRewardPremium ?? 15000}
               onChange={(e) => setSettings({ ...settings, referralRewardPremium: Number(e.target.value) })}
               min="0"
               step="1000"
             />
             <p style={{ color: '#8b949e', fontSize: '11px', marginTop: '4px' }}>
-              Special high reward for Telegram Premium frens to drive premium conversion (default: 25,000 $FEAST).
+              Special high reward for Telegram Premium frens to drive premium conversion (default: 15,000 $FEAST).
             </p>
           </div>
 

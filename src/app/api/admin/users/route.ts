@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { authenticateAdmin, forbiddenResponse, serverError } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
 import { getCached, setCached } from '@/lib/cache';
+import { resolveLevelFromPoints } from '@/lib/levels';
 
 export async function GET(request: Request) {
   try {
@@ -56,6 +57,7 @@ export async function GET(request: Request) {
 
       const coinsBalance = data.coins !== undefined ? Number(data.coins) : Number(data.pointsBalance || data.balance || 0);
       const lifetime = Math.max(coinsBalance, Number(data.totalEarned || 0), Number(data.lifetimeEarned || 0));
+      const resolvedLevel = resolveLevelFromPoints(coinsBalance, data.level);
 
       return {
         id: doc.id,
@@ -66,8 +68,11 @@ export async function GET(request: Request) {
         pointsBalance: coinsBalance,
         balance: coinsBalance,
         coins: coinsBalance,
-        level: Number(data.level || 1),
+        level: resolvedLevel.level,
+        levelName: resolvedLevel.name,
+        levelAvatar: resolvedLevel.avatar,
         profitPerHour: Number(data.profitPerHour || 0),
+        multitapLevel: Number(data.multitapLevel || 1),
         energy: Number(data.energy || 1000),
         maxEnergy: Number(data.maxEnergy || 1000),
         status: data.isBanned ? 'suspended' : (data.status || 'active'),
